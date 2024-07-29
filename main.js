@@ -1,10 +1,10 @@
 
 "use strict";
 
-import "angular";
-import "angular-route";
-import "angular-sanitize";
-import "angular-touch";
+// import "angular";
+// import "angular-route";
+// import "angular-sanitize";
+// import "angular-touch";
 
 import "./js/localstorage.js";
 import "./js/irc-utils.js";

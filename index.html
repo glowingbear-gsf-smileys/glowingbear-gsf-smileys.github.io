@@ -19,10 +19,13 @@
     <link href="css/bootstrap.min.css" rel="stylesheet"/>
     <link href="css/glowingbear.css" rel="stylesheet" media="screen">
     <link href="css/themes/dark.css" rel="stylesheet" media="screen" id="themeCSS" />
-
-    <script src="emojione.min.js"></script>
+    <script src="3rdparty/angular.min.js"></script>
+    <script src="3rdparty/angular-route.min.js"></script>
+    <script src="3rdparty/angular-sanitize.min.js"></script>
+    <script src="3rdparty/angular-touch.min.js"></script>
+    <!-- <script src="emojione.min.js"></script>
     <script src="linkify.min.js"></script>
-    <script src="linkify-string.min.js"></script>
+    <script src="linkify-string.min.js"></script> -->
     <script type="text/javascript" src="smileys/directory.json"></script>  
   </head>
   <body ng-controller="WeechatCtrl" ng-keydown="handleKeyPress($event)" ng-keyup="handleKeyRelease($event)"  ng-keypress="handleKeyPress($event)" ng-class="{'no-overflow': connected}" ng-init="init()" lang="en-US">
@@ -336,7 +339,7 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
         </div>
 
         <div class="title"  ng-click="showModal('topicModal')">
-          <span class="desktop" ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | conditionalLinkify | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys')"></span>
+          <span class="desktop" ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | escapeHTML | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys')"></span>
           <span class="mobile" ng-class="{'active': activeBuffer().active, 'channel': activeBuffer().type === 'channel', 'channel_hash': activeBuffer().prefix === '#', 'channel_plus': activeBuffer().prefix === '+', 'channel_ampersand': activeBuffer().prefix === '&'}">{{ activeBuffer().trimmedName || activeBuffer().fullName }}</span>
         </div>
 
@@ -406,7 +409,7 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
               <td class="prefix"><span ng-class="::{'repeated-prefix': bufferline.prefixtext==bufferlines[$index-1].prefixtext}"><a ng-click="addMention(bufferline)"><span class="hidden-bracket" ng-if="::(bufferline.showHiddenBrackets)">&lt;</span><span ng-repeat="part in ::bufferline.prefix" ng-class="::part.classes" ng-bind="::part.text|prefixlimit:25"></span><span class="hidden-bracket" ng-if="::(bufferline.showHiddenBrackets)">&gt;</span></a></span></td><!--
            --><td class="message"><!--
              --><div ng-repeat="metadata in ::bufferline.metadata" plugin data="::metadata"></div><!--
-             --><span dir="auto" ng-repeat="part in ::bufferline.content" class="text" ng-class="::part.classes.concat(['line-' + part.$$hashKey.replace(':','_')])" ng-bind-html="::part.text | conditionalLinkify:part.classes.includes('cof-chat_host') | DOMfilter:'codify' | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys'| DOMfilter:'inlinecolour' |  DOMfilter:'latexmath':('.line-' + part.$$hashKey.replace(':','_')):settings.enableMathjax"></span>
+             --><span ng-repeat="part in ::bufferline.content" class="text" ng-class="::part.classes.concat(['line-' + part.$$hashKey.replace(':','_')])" ng-bind-html="::part.text | escapeHtml | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'codify' | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys'| DOMfilter:'inlinecolour' |  DOMfilter:'latexmath':('.line-' + part.$$hashKey.replace(':','_')):settings.enableMathjax"></span>
               </td>
             </tr>
             <tr class="readmarker" ng-if="activeBuffer().lastSeen==$index">
@@ -591,6 +594,16 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
                   </div>
                 </form>
               </li>
+              <li>
+                <form class="form-inline" role="form">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" ng-model="settings.translateNewlines">
+                      Server translates newlines to "\n"
+                    </label>
+                  </div>
+                </form>
+              </li>
               <li class="desktop">
                 <form class="form-inline" role="form">
                   <div class="checkbox">
@@ -616,7 +629,7 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
           <div class="modal-header">
             <button type="button" class="close" ng-click="closeModal($event)" aria-hidden="true">&times;</button>
             <h4 class="modal-title">Channel topic {{ activeBuffer().shortName || activeBuffer().fullName }}</h4>
-            <span ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | conditionalLinkify | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys')"></span>
+            <span ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | escapeHtml | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'irclinky' | DOMfilter:'gsf_smileys')"></span>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" ng-click="closeModal($event)">Close</button>

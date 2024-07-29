@@ -67,7 +67,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         'onlyUnread': false,
         'hotlistsync': true,
         'orderbyserver': true,
-        'useFavico': true,
+        'useFavico': !utils.isCordova(),
         'soundnotification': true,
         'fontsize': '14px',
         'fontfamily': (utils.isMobileUi() ? 'sans-serif' : 'Inconsolata, Consolas, Monaco, Ubuntu Mono, monospace'),
@@ -75,6 +75,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         'enableMathjax': false,
         'enableQuickKeys': true,
         'customCSS': '',
+        'translateNewlines': true,
         "currentlyViewedBuffers":{},
         'iToken': '',
         'iAlb': '',
@@ -128,7 +129,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     // Show a TLS warning if GB was loaded over an unencrypted connection,
     // except for local instances (local files, testing)
     $scope.show_tls_warning = (["https:", "file:"].indexOf(window.location.protocol) === -1) &&
-        (["localhost", "127.0.0.1", "::1"].indexOf(window.location.hostname) === -1);
+        (["localhost", "127.0.0.1", "::1"].indexOf(window.location.hostname) === -1) &&
+        !window.is_electron && !utils.isCordova();
 
     $rootScope.isWindowFocused = function() {
         if (typeof $scope.documentHidden === "undefined") {
@@ -260,7 +262,9 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         }
     });
 
-    $rootScope.favico = new Favico({animation: 'none'});
+    if (!utils.isCordova()) {
+        $rootScope.favico = new Favico({animation: 'none'});
+    }
     
     $scope.notifications = notifications.unreadCount('notification');
     $scope.unread = notifications.unreadCount('unread');
@@ -270,7 +274,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         $scope.notifications = notifications.unreadCount('notification');
         $scope.unread = notifications.unreadCount('unread');
 
-        if (settings.useFavico && $rootScope.favico) {
+        if (!utils.isCordova() && settings.useFavico && $rootScope.favico) {
             notifications.updateFavico();
         }
     });
@@ -280,8 +284,12 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         $rootScope.pageTitle = '';
         $rootScope.notificationStatus = '';
 
-        // cancel outstanding notifications
+        // cancel outstanding notifications (incl cordova)
         notifications.cancelAll();
+
+        if (window.plugin !== undefined && window.plugin.notification !== undefined && window.plugin.notification.local !== undefined) {
+            window.plugin.notification.local.cancelAll();
+        }
 
         models.reinitialize();
         $rootScope.$emit('notificationChanged');
@@ -328,6 +336,11 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
             settings.password = $scope.password;
         }
     });
+
+    $rootScope.wasMobileUi = false;
+    if (utils.isMobileUi()) {
+        $rootScope.wasMobileUi = true;
+    }
 
     if (!settings.fontfamily) {
         if (utils.isMobileUi()) {
@@ -440,6 +453,10 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
             return;
         }
 
+        if (utils.isCordova()) {
+            return; // cordova doesn't have a favicon
+        }
+
         if (useFavico) {
             notifications.updateFavico();
         } else {
@@ -453,7 +470,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     // This also fires when the page is loaded if enabled.
     // Note that this says MathJax but we switched to KaTeX
     settings.addCallback('enableMathjax', function(enabled) {
-        if (enabled && !$rootScope.mathjax_init) {
+        // no latex math support for cordova right now
+        if (!utils.isCordova() && enabled && !$rootScope.mathjax_init) {
             // Load MathJax only once
             $rootScope.mathjax_init = true;
 
@@ -577,10 +595,12 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         // Recalculation fails when not connected
         if ($rootScope.connected) {
             // Show the sidebar if switching away from mobile view, hide it when switching to mobile
-            if (!utils.isMobileUi()) {
+            // Wrap in a condition so we save ourselves the $apply if nothing changes (50ms or more)
+            if ($scope.wasMobileUi && !utils.isMobileUi()) {
                 $scope.showSidebar();
                 $scope.updateShowNicklist();
             }
+            $scope.wasMobileUi = utils.isMobileUi();
             $scope.calculateNumLines();
 
             // if we're scrolled to the bottom, scroll down to the same position after the resize
@@ -813,7 +833,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                 return true;
             }
             // Always show core buffer in the list (issue #438)
-            if (buffer.fullName === "core.weechat") {
+            // Also show server buffers in hierarchical view
+            if (buffer.fullName === "core.weechat" || (settings.orderbyserver && buffer.type === 'server')) {
                 return true;
             }
 
