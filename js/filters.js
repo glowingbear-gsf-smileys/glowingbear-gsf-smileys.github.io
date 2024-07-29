@@ -1,29 +1,7 @@
+(function() {
 'use strict';
 
-
-
 var weechat = angular.module('weechat');
-
-weechat.filter('toArray', function () {
-    return function (obj, storeIdx) {
-        if (!(obj instanceof Object)) {
-            return obj;
-        }
-
-        if (storeIdx) {
-            return Object.keys(obj).map(function (key, idx) {
-                return Object.defineProperties(obj[key], {
-                    '$key' : { value: key },
-                    '$idx' : { value: idx, configurable: true }
-                });
-            });
-        }
-
-        return Object.keys(obj).map(function (key) {
-            return Object.defineProperty(obj[key], '$key', { value: key });
-        });
-    };
-});
 
 weechat.filter('linkyNS', ['$sanitize', function($sanitize) {
     var LINKY_URL_REGEXP =
@@ -72,13 +50,40 @@ weechat.filter('linkyNS', ['$sanitize', function($sanitize) {
         }
     };
 }]);
-
 weechat.filter('escapeHtml', function() {
     return function(text) {
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     };
 });
+weechat.filter('toArray', function () {
+    return function (obj, storeIdx) {
+        if (!(obj instanceof Object)) {
+            return obj;
+        }
 
+        if (storeIdx) {
+            return Object.keys(obj).map(function (key, idx) {
+                return Object.defineProperties(obj[key], {
+                    '$key' : { value: key },
+                    '$idx' : { value: idx, configurable: true }
+                });
+            });
+        }
+
+        return Object.keys(obj).map(function (key) {
+            return Object.defineProperty(obj[key], '$key', { value: key });
+        });
+    };
+});
+
+weechat.filter('newlineTrans', function() {
+    return function(text, enabled) {
+        if (!enabled || !text) {
+            return text;
+        }
+        return text.replace(/\\\\/g, "\\").replace(/\\n/g, " <br>");
+    }
+});
 weechat.filter('irclinky', function() {
     return function(text) {
         if (!text) {
@@ -113,31 +118,6 @@ weechat.filter('inlinecolour', function() {
         return text;
     };
 });
-
-// Calls the 'linky' filter unless the disable flag is set. Useful for things like join/quit messages,
-// so you don't accidentally click a mailto: on someone's hostmask.
-weechat.filter('conditionalLinkify', ['$filter', function($filter) {
-    return function(text, disable) {
-        if (!text || disable) {
-            return text;
-        }
-
-        return linkifyStr(text, {
-            className: '',
-            attributes: {
-                rel: 'noopener noreferrer'
-            },
-            target: {
-                url: '_blank'
-            },
-            validate: {
-                email: function () {
-                    return false; //Do not linkify emails
-                }
-            }
-          });
-    };
-}]);
 
 // apply a filter to an HTML string's text nodes, and do so with not exceedingly terrible performance
 weechat.filter('DOMfilter', ['$filter', '$sce', function($filter, $sce) {
@@ -215,6 +195,17 @@ weechat.filter('DOMfilter', ['$filter', '$sce', function($filter, $sce) {
     };
 }]);
 
+// This is used by the cordova app to change link targets to "window.open(<url>, '_system')"
+// so that they're opened in a browser window and don't navigate away from Glowing Bear
+weechat.filter('linksForCordova', ['$sce', function($sce) {
+    return function(text) {
+        // XXX TODO this needs to be improved
+        text = text.replace(/<a (rel="[a-z ]+"\s+)?(?:target="_[a-z]+"\s+)?href="([^"]+)"/gi,
+                            "<a $1 onClick=\"window.open('$2', '_system')\"");
+        return $sce.trustAsHtml(text);
+    };
+}]);
+
 weechat.filter('getBufferQuickKeys', function () {
     return function (obj, $scope) {
         if (!$scope) { return obj; }
@@ -223,7 +214,7 @@ weechat.filter('getBufferQuickKeys', function () {
                 buf.$quickKey = idx < 10 ? (idx + 1) % 10 : '';
             });
         } else {
-            obj.map(function(buffer, idx) {
+            _.map(obj, function(buffer, idx) {
                 return [buffer.number, buffer.$idx, idx];
             }).sort(function(left, right) {
                 // By default, Array.prototype.sort() sorts alphabetically.
@@ -277,17 +268,4 @@ weechat.filter('prefixlimit', function() {
     };
 });
 
-weechat.filter('codify', function() {
-    return function(text) {
-        // The groups of this regex are:
-        // 1. Start of line or space, to prevent codifying weird`stuff` like this
-        // 2. Opening single or triple backticks (not 2, not more than 3)
-        // 3. The code block, does not start with another backtick, non-greedy expansion
-        // 4. The closing backticks, identical to group 2
-        var re = /(^|\s)(```|`)([^`].*?)\2/g;
-        return text.replace(re, function(match, ws, open, code) {
-            var rr = ws + '<span class="hidden-bracket">' + open + '</span><code>' + code + '</code><span class="hidden-bracket">' + open + '</span>';
-            return rr;
-        });
-    };
-});
+})();

@@ -1,7 +1,5 @@
-
+(function() {
 'use strict';
-
-
 
 var websockets = angular.module('ngWebsockets', []);
 
@@ -102,7 +100,7 @@ function($rootScope, $q) {
          * Receives a message on the websocket
          */
         var message = protocol.parse(evt.data);
-        if (message.id in callbacks) {
+        if (_.has(callbacks, message.id)) {
             // see if it's bound to one of the callbacks
             var promise = callbacks[message.id];
             promise.cb.resolve(message);
@@ -149,3 +147,4 @@ function($rootScope, $q) {
     };
 
 }]);
+})();

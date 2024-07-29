@@ -10,10 +10,6 @@ body {
     border: 0px none;
 }
 
-.form-control[disabled] {
-    background: none repeat scroll 0% 0% rgba(63, 63, 63, 0.3);
-}
-
 .form-control option {
    color: #eee;
    background: #282828;
@@ -21,10 +17,6 @@ body {
 
 html {
     background-color: inherit;
-}
-
-#sidebar {
-    scrollbar-width: none;
 }
 
 .repeated-time .cob-chat_time,
@@ -94,9 +86,6 @@ input[type=text], input[type=password], #sendMessage, .badge, .btn-send, .btn-se
     color: #ccc;
     background: none repeat scroll 0% 0% rgba(0, 0, 0, 0.3);
 }
-input[type=text].is-invalid{
-    box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.1), 0px 1px 7px 0px rgba(255, 0, 0, 0.8) inset;
-}
 
 .btn-complete-nick:hover, .btn-complete-nick:focus,
 .btn-send:hover, .btn-send:focus,
@@ -165,21 +154,11 @@ input[type=text].is-invalid{
     -moz-box-shadow: rgba(255, 255, 255, 0.07) 0 -1px 0;
     box-shadow: rgba(255, 255, 255, 0.07) 0 -1px 0;
     border-top: 1px solid #121212;
-    max-height: 60em;
 }
 
 #readmarker {
     border-top-color: rgba(255, 255, 255, 0.3);
     border-bottom-color: #121212;
-}
-
-#sidebar[data-state=hidden] {
-    transform: translate(-200px,0);
-    -webkit-transform: translate(-200px,0);
-}
-
-#topbar .badge {
-    display: none;
 }
 
 button.close {
@@ -2133,15 +2112,6 @@ button.close:hover {
 .highlight {
     color: yellow;
     font-weight: bold;
-}
-
-code {
-  background-color: #444;
-  color: #fff;
-}
-
-.toast {
-    background-color: #333;
 }
 
 /* */

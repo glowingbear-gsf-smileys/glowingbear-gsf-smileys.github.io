@@ -1,8 +1,9 @@
 /**
  * Portable utilities for IRC.
  */
-'use strict';
 
+(function() {
+'use strict';
 
 var IrcUtils = angular.module('IrcUtils', []);
 
@@ -15,6 +16,22 @@ IrcUtils.service('IrcUtils', [function() {
      var escapeRegExp = function(str) {
          return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
      };
+
+    /**
+     * Get a new version of a nick list, sorted by last speaker
+     *
+     * @param nickList Original nick list
+     * @return Sorted nick list
+     */
+    var _ciNickList = function(nickList) {
+
+        var newList = _(nickList).sortBy(function(nickObj) {
+            return -nickObj.spokeAt;
+        });
+        newList = _(newList).pluck('name');
+
+        return newList;
+    };
 
     /**
      * Completes a single nick.
@@ -89,23 +106,20 @@ IrcUtils.service('IrcUtils', [function() {
      * @param iterCandidate Current iteration candidate (null if not iterating)
      * @param nickList Array of current nicks
      * @param suf Custom suffix (at least one character, escaped for regex)
-     * @param addSpace Whether to add a space after nick completion in the middle
      * @return Object with following properties:
      *      text: new complete replacement text
      *      caretPos: new caret position within new text
      *      foundNick: completed nick (or null if not possible)
      *      iterCandidate: current iterating candidate
      */
-    var completeNick = function(text, caretPos, iterCandidate, nickList, suf, addSpace) {
+    var completeNick = function(text, caretPos, iterCandidate, nickList, suf) {
         var doIterate = (iterCandidate !== null);
-        if (suf === undefined) {
+        if (suf === null) {
             suf = ':';
         }
-        // addSpace defaults to true
-        var addSpaceChar = (addSpace === undefined || addSpace === 'on') ? ' ' : '';
 
         // new nick list to search in
-        var searchNickList = nickList.map((el) => el.name);
+        var searchNickList = _ciNickList(nickList);
 
         // text before and after caret
         var beforeCaret = text.substring(0, caretPos);
@@ -127,11 +141,7 @@ IrcUtils.service('IrcUtils', [function() {
             if (doIterate) {
                 // try iterating
                 newNick = _nextNick(iterCandidate, m[1], searchNickList);
-                if (suf.endsWith(' ')) {
-                    beforeCaret = newNick + suf;
-                } else {
-                    beforeCaret = newNick + suf + ' ';
-                }
+                beforeCaret = newNick + suf + ' ';
                 return {
                     text: beforeCaret + afterCaret,
                     caretPos: beforeCaret.length,
@@ -153,11 +163,7 @@ IrcUtils.service('IrcUtils', [function() {
                 // no match
                 return ret;
             }
-            if (suf.endsWith(' ')) {
-                beforeCaret = newNick + suf;
-            } else {
-                beforeCaret = newNick + suf + ' ';
-            }
+            beforeCaret = newNick + suf + ' ';
             if (afterCaret[0] === ' ') {
                 // swallow first space after caret if any
                 afterCaret = afterCaret.substring(1);
@@ -176,7 +182,7 @@ IrcUtils.service('IrcUtils', [function() {
             if (doIterate) {
                 // try iterating
                 newNick = _nextNick(iterCandidate, m[2], searchNickList);
-                beforeCaret = m[1] + newNick + addSpaceChar;
+                beforeCaret = m[1] + newNick + ' ';
                 return {
                     text: beforeCaret + afterCaret,
                     caretPos: beforeCaret.length,
@@ -198,7 +204,7 @@ IrcUtils.service('IrcUtils', [function() {
                 // no match
                 return ret;
             }
-            beforeCaret = m[1] + newNick + addSpaceChar;
+            beforeCaret = m[1] + newNick + ' ';
             if (afterCaret[0] === ' ') {
                 // swallow first space after caret if any
                 afterCaret = afterCaret.substring(1);
@@ -219,3 +225,4 @@ IrcUtils.service('IrcUtils', [function() {
         'completeNick': completeNick
     };
 }]);
+})();

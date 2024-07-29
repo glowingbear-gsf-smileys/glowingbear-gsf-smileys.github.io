@@ -2,12 +2,8 @@
  * This file contains the weechat models and various
  * helper methods to work with them.
  */
+(function() {
 'use strict';
-
-
-
-import * as weeChat from './weechat';
-import { sortBy } from './misc';
 
 var models = angular.module('weechatModels', []);
 
@@ -22,10 +18,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
     this.outgoingQueries = [];
 
     var parseRichText = function(text) {
-        if(!text) {
-            return [{'text': text}];
-        }
-
         var textElements = weeChat.Protocol.rawText2Rich(text),
             typeToClassPrefixFg = {
                 'option': 'cof-',
@@ -72,9 +64,8 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
      */
     this.Buffer = function(message) {
         // weechat properties
-        var fullName = parseRichText(message.full_name)[0].text;
-        var shortName = parseRichText(message.short_name)[0].text;
-        var classes = parseRichText(message.short_name)[0].classes;
+        var fullName = message.full_name;
+        var shortName = message.short_name;
         var hidden = message.hidden;
         // If it's a channel, trim away the prefix (#, &, or +). If that is empty and the buffer
         // has a short name, use a space (because the prefix will be displayed separately, and we don't want
@@ -99,18 +90,13 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
         // There are two kinds of types: bufferType (free vs formatted) and
         // the kind of type that distinguishes queries from channels etc
         var bufferType = message.type;
-
-        // If type is undefined set it as other to avoid later errors
-        var type = message.local_variables.type || 'other';
+        var type = message.local_variables.type;
         var indent = (['channel', 'private'].indexOf(type) >= 0);
 
         var plugin = message.local_variables.plugin;
         var server = message.local_variables.server;
 
         var pinned = message.local_variables.pinned === "true";
-
-        // hide timestamps for certain buffer types
-        var hideBufferLineTimes = type && type === 'relay';
 
         // Server buffers have this "irc.server.freenode" naming schema, which
         // messes the sorting up. We need it to be "irc.freenode" instead.
@@ -158,25 +144,16 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             if (group === undefined) {
                 return;
             }
+            group.nicks = _.filter(group.nicks, function(n) { return n.name !== nick.name;});
+            /*
             for (i in group.nicks) {
                 if (group.nicks[i].name == nick.name) {
-                    group.nicks.splice(i, 1);
+                    delete group.nicks[i];
                     break;
                 }
             }
+            */
         };
-        /*
-         * Clear the nicklist
-         */
-        var clearNicklist = function() {
-            //only keep the root node
-            for (var obj in nicklist) {
-                if (obj !== 'root') {
-                    delete nicklist[obj];
-                }
-            }
-        };
-
         /*
          * Updates a nick in nicklist
          */
@@ -218,15 +195,15 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             else if (nick === "" || nick === "=!=") {
                 return;
             }
-            for (let groupIdx in nicklist) {
-                let nicks = nicklist[groupIdx].nicks;
-                for (let curr_nick of nicks) {
-                    if (curr_nick.name === nick) {
-                        curr_nick.spokeAt = Date.now();
-                        return;
+            _.each(nicklist, function(nickGroup) {
+                _.each(nickGroup.nicks, function(nickObj) {
+                    if (nickObj.name === nick) {
+                        // Use the order the line arrive in for simplicity
+                        // instead of using weechat's own timestamp
+                        nickObj.spokeAt = Date.now();
                     }
-                }
-            }
+                });
+            });
         };
 
         /*
@@ -236,11 +213,15 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
          */
         var getNicklistByTime = function() {
             var newlist = [];
-            for (let groupIdx in nicklist) {
-                newlist = newlist.concat(nicklist[groupIdx].nicks);
-            }
+            _.each(nicklist, function(nickGroup) {
+                _.each(nickGroup.nicks, function(nickObj) {
+                    newlist.push(nickObj);
+                });
+            });
 
-            newlist.sort(sortBy('spokeAt'));
+            newlist.sort(function(a, b) {
+                return a.spokeAt < b.spokeAt;
+            });
 
             return newlist;
         };
@@ -315,19 +296,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             return nicklist.hasOwnProperty('root');
         };
 
-        // Check whether a particular nick is in the nicklist
-        var queryNicklist = function(nick) {
-            for (var groupIdx in nicklist) {
-                var nicks = nicklist[groupIdx].nicks;
-                for (var nickIdx in nicks)  {
-                    if (nicks[nickIdx].name === nick) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-
         /* Clear all our buffer lines */
         var clear = function() {
             while(lines.length > 0) {
@@ -342,7 +310,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             shortName: shortName,
             hidden: hidden,
             trimmedName: trimmedName,
-            nameClasses: classes,
             prefix: prefix,
             number: number,
             title: title,
@@ -358,7 +325,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             nicklist: nicklist,
             addNick: addNick,
             delNick: delNick,
-            clearNicklist: clearNicklist,
             updateNick: updateNick,
             getNicklistByTime: getNicklistByTime,
             serverSortKey: serverSortKey,
@@ -373,9 +339,7 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             getHistoryDown: getHistoryDown,
             isNicklistEmpty: isNicklistEmpty,
             nicklistRequested: nicklistRequested,
-            hideBufferLineTimes: hideBufferLineTimes,
             pinned: pinned,
-            queryNicklist: queryNicklist,
         };
 
     };
@@ -394,11 +358,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
         var displayed = message.displayed;
         var highlight = message.highlight;
         var content = parseRichText(message.message);
-
-        // only put invisible angle brackets around nicks in normal messages
-        // (for copying/pasting)
-        var showHiddenBrackets = (tags_array.indexOf('irc_privmsg') >= 0 &&
-                                  tags_array.indexOf('irc_action') === -1);
 
         if (highlight) {
             prefix.forEach(function(textEl) {
@@ -427,8 +386,8 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             highlight: highlight,
             displayed: displayed,
             prefixtext: prefixtext,
-            text: rtext,
-            showHiddenBrackets: showHiddenBrackets
+            text: rtext
+
         };
 
     };
@@ -514,26 +473,11 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
         };
     };
 
-    this.Server = function() {
-        var id = 0; // will be set later on
-        var unread = 0;
-
-        return {
-            id: id,
-            unread: unread
-        };
-    };
-
 
     var activeBuffer = null;
     var previousBuffer = null;
 
-    this.model = { 'buffers': {}, 'servers': {} };
-
-    this.registerServer = function(buffer) {
-        var key = buffer.plugin + '.' + buffer.server;
-        this.getServer(key).id = buffer.id;
-    };
+    this.model = { 'buffers': {} };
 
     /*
      * Adds a buffer to the list
@@ -597,12 +541,11 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             activeBuffer = this.model.buffers[bufferId];
         }
         else {
-            activeBuffer = Object.entries(this.model.buffers).find(([id, buffer]) => {
-                return buffer[key] === bufferId;
+            activeBuffer = _.find(this.model.buffers, function(buffer) {
+                if (buffer[key] === bufferId) {
+                    return buffer;
+                }
             });
-            if (activeBuffer !== undefined) {
-                activeBuffer = activeBuffer[1]; // value not key
-            }
         }
 
         if (activeBuffer === undefined) {
@@ -619,8 +562,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
         }
 
         var unreadSum = activeBuffer.unread + activeBuffer.notification;
-
-        this.getServerForBuffer(activeBuffer).unread -= unreadSum;
 
         activeBuffer.active = true;
         activeBuffer.unread = 0;
@@ -644,7 +585,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
      */
     this.reinitialize = function() {
         this.model.buffers = {};
-        this.model.servers = {};
     };
 
     /*
@@ -655,35 +595,6 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
      */
     this.getBuffer = function(bufferId) {
         return this.model.buffers[bufferId];
-    };
-
-    /*
-     * Returns the server list
-     */
-    this.getServers = function() {
-        return this.model.servers;
-    };
-
-    /*
-     * Returns the server object for a specific key, creating it if it does not exist
-     * @param key the server key
-     * @return the server object
-     */
-    this.getServer = function(key) {
-        if (this.model.servers[key] === undefined) {
-            this.model.servers[key] = this.Server();
-        }
-        return this.model.servers[key];
-    };
-
-    /*
-     * Returns info on the server buffer for a specific buffer
-     * @param buffer the buffer
-     * @return the server object
-     */
-    this.getServerForBuffer = function(buffer) {
-        var key = buffer.plugin + '.' + buffer.server;
-        return this.getServer(key);
     };
 
     /*
@@ -700,10 +611,11 @@ models.service('models', ['$rootScope', '$filter', 'bufferResume', function($roo
             return;
         }
         if (buffer.active) {
-            var firstBuffer = Object.keys(this.model.buffers)[0];
+            var firstBuffer = _.keys(this.model.buffers)[0];
             this.setActiveBuffer(firstBuffer);
         }
         // Can't use `buffer` here, needs to be deleted from the list
         delete(this.model.buffers[bufferId]);
     };
 }]);
+})();

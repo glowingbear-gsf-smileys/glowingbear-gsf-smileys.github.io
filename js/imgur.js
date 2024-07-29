@@ -3,12 +3,14 @@
 
 var weechat = angular.module('weechat');
 
-weechat.factory('imgur', ['$rootScope', 'settings', function($rootScope, settings) {
+weechat.factory('imgur', ['$rootScope', function($rootScope) {
 
     var process = function(image, callback) {
+
         // Is it an image?
         if (!image || !image.type.match(/image.*/)) return;
 
+        // New file reader
         var reader = new FileReader();
 
         // When image is read
@@ -16,106 +18,92 @@ weechat.factory('imgur', ['$rootScope', 'settings', function($rootScope, setting
             var image = event.target.result.split(',')[1];
             upload(image, callback);
         };
+
+        // Read image as data url
         reader.readAsDataURL(image);
-    };
 
-    var authenticate = function(xhr) {
-        // API authorization, either via Client ID (anonymous) or access token
-        // (add to user's imgur account), see also:
-        // https://github.com/glowing-bear/glowing-bear/wiki/Getting-an-imgur-token-&-album-hash
-        var accessToken = "164efef8979cd4b";
-
-        // Check whether the user has configured a bearer token, if so, use it
-        // to add the image to the user's account
-        if (settings.iToken.length >= 38){
-            xhr.setRequestHeader("Authorization", "Bearer " + settings.iToken);
-        } else {
-            xhr.setRequestHeader("Authorization", "Client-ID " + accessToken);
-        }
     };
 
     // Upload image to imgur from base64
     var upload = function( base64img, callback ) {
+        // Set client ID (Glowing Bear)
+        var clientId = "164efef8979cd4b";
+
         // Progress bars container
         var progressBars = document.getElementById("imgur-upload-progress"),
             currentProgressBar = document.createElement("div");
+
+        // Set progress bar attributes
         currentProgressBar.className='imgur-progress-bar';
         currentProgressBar.style.width = '0';
 
+        // Append progress bar
         progressBars.appendChild(currentProgressBar);
 
-        // Assemble the form data for the upload
+        // Create new form data
         var fd = new FormData();
-        fd.append("image", base64img);
-        fd.append("type", "base64");
+        fd.append("image", base64img); // Append the file
+        fd.append("type", "base64"); // Set image type to base64
 
-        // Add the image to the provided album if configured to do so
-        if (settings.iToken.length >= 38 && settings.iAlb.length >= 6) {
-            fd.append("album", settings.iAlb);
-        }
+        // Create new XMLHttpRequest
+        var xhttp = new XMLHttpRequest();
 
         // Post request to imgur api
-        var xhttp = new XMLHttpRequest();
         xhttp.open("POST", "https://api.imgur.com/3/image", true);
-        authenticate(xhttp);
+
+        // Set headers
+        xhttp.setRequestHeader("Authorization", "Client-ID " + clientId);
         xhttp.setRequestHeader("Accept", "application/json");
 
         // Handler for response
         xhttp.onload = function() {
+
             // Remove progress bar
-            progressBars.removeChild(currentProgressBar);
+            currentProgressBar.parentNode.removeChild(currentProgressBar);
 
             // Check state and response status
-            if (xhttp.status === 200) {
+            if(xhttp.status === 200) {
+
+                // Get response text
                 var response = JSON.parse(xhttp.responseText);
 
                 // Send link as message
-                if (response.data && response.data.link) {
+                if( response.data && response.data.link ) {
+
                     if (callback && typeof(callback) === "function") {
-                        callback(response.data.link.replace(/^http:/, "https:"), response.data.deletehash);
+                        callback(response.data.link.replace(/^http:/, "https:"));
                     }
+
                 } else {
                     showErrorMsg();
                 }
+
             } else {
                 showErrorMsg();
             }
+
         };
 
-        if ("upload" in xhttp) {
-            // Update the progress bar if we can compute progress
+        if( "upload" in xhttp ) {
+
+            // Set progress
             xhttp.upload.onprogress = function (event) {
+
+                // Check if we can compute progress
                 if (event.lengthComputable) {
+                    // Complete in percent
                     var complete = (event.loaded / event.total * 100 | 0);
+
+                    // Set progress bar width
                     currentProgressBar.style.width = complete + '%';
                 }
             };
+
         }
+
         // Send request with form data
         xhttp.send(fd);
-    };
 
-    // Delete an image from imgur with the deletion link
-    var deleteImage = function( deletehash, callback ) {
-        var xhttp = new XMLHttpRequest();
-
-        // Post request to imgur api
-        xhttp.open("DELETE", "https://api.imgur.com/3/image/" + deletehash, true);
-        authenticate(xhttp);
-        xhttp.setRequestHeader("Accept", "application/json");
-
-        // Handler for response
-        xhttp.onload = function() {
-            // Check state and response status
-            if (xhttp.status === 200) {
-                callback(deletehash);
-            } else {
-                showErrorMsg();
-            }
-        };
-        
-        // Send request with form data
-        xhttp.send(null);
     };
 
     var showErrorMsg = function() {
@@ -132,8 +120,7 @@ weechat.factory('imgur', ['$rootScope', 'settings', function($rootScope, setting
     };
 
     return {
-        process: process,
-        deleteImage: deleteImage
+        process: process
     };
 
 }]);

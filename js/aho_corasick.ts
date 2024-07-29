@@ -348,7 +348,7 @@ class IntervalNode<T extends Interval> {
 }
 (function() {
     let weechat = angular.module("weechat");
-    weechat.filter("gsf_smileys", function() : (text: string) => string {
+    weechat.filter("gbs_smileys", function() : (text: string) => string {
         let trieBuilder: TrieBuilder = new TrieBuilder().ignoreOverlaps();
         Object.keys(smileys_directory).forEach((k, v) => {
             trieBuilder.addKeyword(k);

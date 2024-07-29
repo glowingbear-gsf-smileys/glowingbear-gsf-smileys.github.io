@@ -6,7 +6,9 @@ body {
 .no-overflow {
     overflow: hidden;
 }
-
+#sidebar {
+    scrollbar-width: none;
+}
 .mobile {
   display: none;
 }
@@ -146,7 +148,7 @@ input[type=text], input[type=password], #sendMessage {
 .col-sm-9 {
     padding-right: 5px !important;
 }
-#topbar .glyphicon {
+.glyphicon {
     top: 0; /* Fixes alignment issue in top bar */
 }
 #topbar {
@@ -223,9 +225,7 @@ input[type=text], input[type=password], #sendMessage {
     overflow-y: auto;
     overflow-x: hidden;
     padding-top: 35px; /* topbar */
-    padding-right: env(safe-area-inset-right);
     padding-bottom: 1px; /* need to force a padding here */
-    padding-left: env(safe-area-inset-left);
     font-size: smaller;
     transition:0.2s ease-in-out;
     z-index: 2;
@@ -264,11 +264,6 @@ input[type=text], input[type=password], #sendMessage {
   width: 0;
 }
 
-#sidebar[data-state=hidden] {
-    transform: translate(-200px,0);
-    -webkit-transform: translate(-200px,0);
-}
-
 #nicklist {
     position: fixed;
     width: 100px;
@@ -278,9 +273,9 @@ input[type=text], input[type=password], #sendMessage {
     overflow-x: hidden;
     right: 0;
     top: 0;
-    margin-top: 39px;
+    padding-top: 39px;
     padding-left: 5px;
-    padding-bottom: 44px;
+    padding-bottom: 35px;
     z-index: 2;
 }
 #nicklist ul {
@@ -340,7 +335,6 @@ input[type=text], input[type=password], #sendMessage {
 .content {
     height: 100%;
     min-height: 100%;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #bufferlines {
@@ -396,7 +390,6 @@ td.time {
     bottom: 0;
     height: 35px;
     width: 100%;
-    margin-bottom: env(safe-area-inset-bottom); /* margin for home-indicator on iPhone X */
     -webkit-transition:0.2s ease-in-out all;
     transition:0.2s ease-in-out all;
     z-index: 1;
@@ -405,7 +398,6 @@ td.time {
     margin-left: 0;
     padding-left: 145px;
 }
-
 .footer.withnicklist {
     padding-right: 100px;
 }
@@ -616,6 +608,7 @@ h2 span, h2 small {
 
 .panel[data-state=active] .panel-collapse {
     transition: max-height 0.5s;
+    max-height: 60em;
     height: auto;
     display: block;
 }
@@ -681,47 +674,12 @@ li.buffer.indent.private a {
     font-size: small;
 }
 
-.lessleftpad {
-    padding-left: 5px;
-}
-
 .unselectable {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
-}
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 50px;
-  width: 250px;
-  margin-left: -125px;
-
-  text-align: center;
-  border-radius: 3px;
-  padding: 10px 15px;
-  z-index: 100;
-}
-
-.toast-short {
-    animation: fadein 0.5s, fadeout 0.5s 4.5s;
-}
-
-.toast-long {
-    animation: fadein 0.5s, fadeout 0.5s 14.5s;
-}
-
-@keyframes fadein {
-  from { bottom: 0;    opacity: 0; }
-  to   { bottom: 50px; opacity: 1; }
-}
-
-@keyframes fadeout {
-  from { bottom: 50px; opacity: 1; }
-  to   { bottom: 0;    opacity: 0; }
 }
 
 .glyphicon-spin {
@@ -819,6 +777,11 @@ li.buffer.indent.private a {
         -webkit-transform: translate(0,0); /* Safari */
     }
 
+    #sidebar[data-state=hidden] {
+        transform: translate(-200px,0);
+        -webkit-transform: translate(-200px,0);
+    }
+
     .content[sidebar-state=visible] #bufferlines, .content[sidebar-state=visible] .footer {
         margin-left: 0px;
         transform: translate(200px,0);
@@ -831,16 +794,16 @@ li.buffer.indent.private a {
         text-align: center;
         font-size: 18px;
         width: initial;
-        z-index: -1;
-    }
-
-    #topbar .brand a {
-        padding: 0 2px 0 10px;
     }
 
     #topbar .brand img {
         height: 28px;
     }
+
+    #topbar .badge {
+        display: none;
+    }
+
 
     #bufferlines, #nicklist {
         position: relative;
@@ -873,11 +836,6 @@ li.buffer.indent.private a {
 
     .nav-pills {
         font-size: 14px;
-    }
-
-    .nav-pills li.buffer {
-        min-height: 30px;
-        max-height: 30px;
     }
 
     .nav-pills li a {
@@ -945,22 +903,4 @@ li.buffer.indent.private a {
 /* ng-cloak hides elements until Angular loads, preventing flickering */
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
-}
-
-code {
-    padding: 0px 2px;
-    color: #444;
-    border: 1pt solid #444;
-}
-
-.checkbox.indent {
-    margin-left: 20px;
-}
-
-#bufferlines.hideTime td.time {
-    display:none;
-}
-
-#bufferlines.hideTime td.prefix {
-    display:none;
 }

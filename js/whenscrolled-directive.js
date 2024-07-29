@@ -1,10 +1,7 @@
-
+(function() {
 'use strict';
 
-
-
 var weechat = angular.module('weechat');
-
 weechat.directive('whenScrolled', function() {
     return function(scope, elm, attr) {
         var raw = elm[0];
@@ -16,7 +13,9 @@ weechat.directive('whenScrolled', function() {
         };
 
         elm.bind('scroll', function() {
-            setTimeout(fun, 200);
+            _.debounce(fun, 200)();
         });
     };
 });
+
+})();

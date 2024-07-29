@@ -2,9 +2,8 @@
  * This file contains the plugin definitions
  */
 
+(function() {
 'use strict';
-
-
 
 var plugins = angular.module('plugins', []);
 
@@ -24,7 +23,7 @@ var Plugin = function(name, contentForMessage) {
 
 
 // Regular expression that detects URLs for UrlPlugin
-var urlRegexp = /(?:(?:https?|ftp):\/\/|www\.|ftp\.)\S*[^\s.;,(){}<>[\]]/g;
+var urlRegexp = /(?:(?:https?|ftp):\/\/|www\.|ftp\.)\S*[^\s.;,(){}<>]/g;
 /*
  * Definition of a user provided plugin that consumes URLs
  *
@@ -34,7 +33,7 @@ var urlRegexp = /(?:(?:https?|ftp):\/\/|www\.|ftp\.)\S*[^\s.;,(){}<>[\]]/g;
 var UrlPlugin = function(name, urlCallback) {
     return {
         contentForMessage: function(message) {
-            var urls = [... new Set(message.match(urlRegexp))];
+            var urls = _.uniq(message.match(urlRegexp));
             var content = [];
 
             for (var i = 0; urls && i < urls.length; i++) {
@@ -210,64 +209,18 @@ plugins.factory('userPlugins', function() {
      * See: https://developers.google.com/youtube/player_parameters
      */
     var youtubePlugin = new UrlPlugin('YouTube video', function(url) {
-        var regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})(?:.*t=)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?/i,
+        var regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i,
             match = url.match(regex);
 
         if (match){
-            var token = match[1];
-            var hours = match[2] ? parseInt(match[2]) : 0;
-            var mins = match[3] ? parseInt(match[3]) : 0;
-            var secs = match[4] ? parseInt(match[4]) : 0;
-            var totalSecs = secs + mins*60 + hours*60*60;
-            var embedurl = "https://www.youtube.com/embed/" + token + "?html5=1&iv_load_policy=3&modestbranding=1&rel=0&start=" + totalSecs;
-
-            var element = angular.element('<iframe></iframe>')
+            var token = match[1],
+                embedurl = "https://www.youtube.com/embed/" + token + "?html5=1&iv_load_policy=3&modestbranding=1&rel=0",
+                element = angular.element('<iframe></iframe>')
                     .attr('src', embedurl)
                     .attr('width', '560')
                     .attr('height', '315')
                     .attr('frameborder', '0')
                     .attr('allowfullscreen', 'true');
-            return element.prop('outerHTML');
-        }
-    });
-    
-    /*
-     * Twitch Embedded Player
-     *
-     * See: https://dev.twitch.tv/docs/embed/video-and-clips/#non-interactive-iframes-for-clips
-     */
-	
-    var twitchPlugin = new UrlPlugin('Twitch video', function(url) {
-        var regex = /(?:https?:\/\/)?clips\.twitch\.tv\/([^\?\&\/\s]+)/i,
-            match = url.match(regex),
-            embedurl,
-            element;
-
-        if (match) {
-            var clipId = match[1];
-            embedurl = "https://clips.twitch.tv/embed?clip=" + clipId + "&parent=" + window.location.hostname;
-            element = angular.element('<iframe></iframe>')
-                .attr('src', embedurl)
-                .attr('width', '560')
-                .attr('height', '315')
-                .attr('allowfullscreen', 'true');
-            return element.prop('outerHTML');
-        }
-
-	regex = /(?:https?:(?:\/\/www\.)?)?twitch\.tv\/(?:videos\/(\d+)|(\w+))/i;
-        match = url.match(regex);
-        if (match) {
-	    var mediaType = "video";
-	    if (match[1] === undefined) {
-		mediaType = "channel";
-	    }
-	    var mediaId = match[1] === undefined ? match[2] : match[1];
-	    embedurl = "https://player.twitch.tv/?" + mediaType + "=" + mediaId + "&parent=" + window.location.hostname + "&autoplay=false&muted=true";
-            element = angular.element('<iframe></iframe>')
-                .attr('src', embedurl)
-                .attr('width', '560')
-                .attr('height', '315')
-                .attr('allowfullscreen', 'true');
             return element.prop('outerHTML');
         }
     });
@@ -392,7 +345,7 @@ plugins.factory('userPlugins', function() {
             }
             return function() {
                 var element = this.getElement(), src;
-                var velement = angular.element('<video autoplay controls loop muted></video>')
+                var velement = angular.element('<video autoplay loop muted></video>')
                                      .addClass('embed')
                                      .attr('width', '560');
                 // imgur doesn't always have webm for gifv so add sources for webm and mp4
@@ -510,10 +463,8 @@ plugins.factory('userPlugins', function() {
                 jsonp(url, function(data) {
                     // Add the gist stylesheet only once
                     if (document.querySelectorAll('link[rel=stylesheet][href="' + data.stylesheet + '"]').length < 1) {
-                        var stylesheet = document.createElement("link");
-                        stylesheet.href = data.stylesheet;
-                        stylesheet.setAttribute('rel', 'stylesheet');
-                        document.head.appendChild(stylesheet);
+                        var stylesheet = '<link rel="stylesheet" href="' + data.stylesheet + '"></link>';
+                        document.getElementsByTagName('head')[0].innerHTML += stylesheet;
                     }
                     element.innerHTML = '<div style="clear:both">' + data.div + '</div>';
                 });
@@ -562,12 +513,16 @@ plugins.factory('userPlugins', function() {
         var regexp = /^https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(?:es)?\/(\d+)/i;
         var match = url.match(regexp);
         if (match) {
-            url = 'https://api.twitter.com/1/statuses/oembed.json?omit_script=true&id=' + match[2];
+            url = 'https://api.twitter.com/1/statuses/oembed.json?id=' + match[2];
             return function() {
                 var element = this.getElement();
                 jsonp(url, function(data) {
+                    // separate the HTML into content and script tag
+                    var scriptIndex = data.html.indexOf("<script ");
+                    var content = data.html.substr(0, scriptIndex);
                     // Set DNT (Do Not Track)
-                    element.innerHTML = data.html.replace("<blockquote class=\"twitter-tweet\">", "<blockquote class=\"twitter-tweet\" data-dnt=\"true\">");
+                    content = content.replace("<blockquote class=\"twitter-tweet\">", "<blockquote class=\"twitter-tweet\" data-dnt=\"true\">");
+                    element.innerHTML = content;
 
                     // The script tag needs to be generated manually or the browser won't load it
                     var scriptElem = document.createElement('script');
@@ -576,6 +531,24 @@ plugins.factory('userPlugins', function() {
                     element.appendChild(scriptElem);
                 });
             };
+        }
+    });
+
+    /*
+     * Vine plugin
+     */
+    var vinePlugin = new UrlPlugin('Vine', function (url) {
+        var regexp = /^https?:\/\/(www\.)?vine\.co\/v\/([a-zA-Z0-9]+)(\/.*)?/i,
+            match = url.match(regexp);
+        if (match) {
+            var id = match[2], embedurl = "https://vine.co/v/" + id + "/embed/simple?audio=1";
+            var element = angular.element('<iframe></iframe>')
+                                 .addClass('vine-embed')
+                                 .attr('src', embedurl)
+                                 .attr('width', '600')
+                                 .attr('height', '600')
+                                 .attr('frameborder', '0');
+            return element.prop('outerHTML') + '<script async src="https://platform.vine.co/static/scripts/embed.js" charset="utf-8"></script>';
         }
     });
 
@@ -596,43 +569,10 @@ plugins.factory('userPlugins', function() {
         }
     });
 
-    /*
-     * TikTok embedded player
-     * Very similar to twitter
-     */
-    var tikTokPlugin = new UrlPlugin('TikTok', function(url) {
-        var regex = /^https?:\/\/(?:www\.)?tiktok\.com\/@(?:.+)\/video\/(?:.+)\/?$|^https?:\/\/vm\.tiktok\.com\/[a-zA-Z1-9]{7}\/?$/i;
-        var match = url.match(regex);
-
-        if (match) {
-
-            return function() {
-                var element = this.getElement();
-                
-                fetch("https://www.tiktok.com/oembed?url=" + url)
-                .then(function(response) {
-                    return response.json();
-                })
-                .then(function(data) {
-                    // Separate the HTML into content and script tag
-                    var scriptIndex = data.html.indexOf("<script ");
-                    var content = data.html.substr(0, scriptIndex);
-                    element.innerHTML = content;
-                    // Change the width so we get the deskop version of the embed
-                    element.children[0].style.maxWidth = "650px";
-                    // The script tag needs to be generated manually or the browser won't load it
-                    var scriptElem = document.createElement('script');
-                    // Hardcoding the URL here, I don't suppose it's going to change anytime soon
-                    scriptElem.src = "https://www.tiktok.com/embed.js";
-                    element.appendChild(scriptElem);
-                });
-            };
-        }
-    });
-
     return {
-        plugins: [youtubePlugin, twitchPlugin, dailymotionPlugin, allocinePlugin, imagePlugin, videoPlugin, audioPlugin, spotifyPlugin, cloudmusicPlugin, googlemapPlugin, asciinemaPlugin, yrPlugin, gistPlugin, pastebinPlugin, giphyPlugin, tweetPlugin, streamablePlugin, tikTokPlugin]
+        plugins: [youtubePlugin, dailymotionPlugin, allocinePlugin, imagePlugin, videoPlugin, audioPlugin, spotifyPlugin, cloudmusicPlugin, googlemapPlugin, asciinemaPlugin, yrPlugin, gistPlugin, pastebinPlugin, giphyPlugin, tweetPlugin, vinePlugin, streamablePlugin]
     };
 
 
 });
+})();

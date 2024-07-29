@@ -37,15 +37,13 @@ StoragePolyfil.prototype.removeItem = function(key) {
     this.keyIndex.splice(at, 1);
     delete this.storage[key];
 };
-
-
 ls.factory("$store", ["$parse", function($parse){
     /**
      * Global Vars
      */
     var storage = (typeof window.localStorage === 'undefined') ? undefined : window.localStorage,
         supported = !(typeof storage == 'undefined' || typeof window.JSON == 'undefined');
-
+    //Pre 11.0 ios safari private mode weirdness
     try {
         var storageTestKey = "eaf23ffe-6a8f-40a7-892b-4baf22d3ec75";
         storage.setItem(storageTestKey, 1);

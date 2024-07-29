@@ -24,8 +24,8 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
             }
         }
 
-        // Check for serviceWorker support, and also disable serviceWorker if we're running in tauri process, since that's just problematic and not necessary, since gb then already is in a separate process
-        if ('serviceWorker' in navigator && !utils.isTauri() && window.is_electron !== 1) {
+        // Check for serviceWorker support, and also disable serviceWorker if we're running in electron process, since that's just problematic and not necessary, since gb then already is in a separate process
+        if ('serviceWorker' in navigator && window.is_electron !== 1) {
             $log.info('Service Worker is supported');
             navigator.serviceWorker.register('serviceworker.js').then(function(reg) {
                 $log.info('Service Worker install:', reg);
@@ -52,7 +52,6 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
     };
 
     var showNotification = function(buffer, title, body) {
-        $log.info('Showing notification', title);
         if (serviceworker) {
             navigator.serviceWorker.ready.then(function(registration) {
                 registration.showNotification(title, {
@@ -88,14 +87,13 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
                 body: body,
                 icon: 'assets/img/favicon.png'
             });
-            $log.info('Using Web API Notification', notification);
 
             // Save notification, so we can close all outstanding ones when disconnecting
             notification.id = notifications.length;
             notifications.push(notification);
 
             // Cancel notification automatically
-            var timeout = 15*1000; // 15 seconds
+            var timeout = 15*1000;
             notification.onshow = function() {
                 setTimeout(function() {
                     notification.close();
@@ -103,8 +101,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
             };
 
             // Click takes the user to the buffer
-            notification.onclick = function(event) {
-                event.preventDefault();
+            notification.onclick = function() {
                 models.setActiveBuffer(buffer.id);
                 window.focus();
                 notification.close();
@@ -114,6 +111,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
             notification.onclose = function() {
                 delete notifications[this.id];
             };
+
         } else if (utils.isCordova() && window.cordova.plugins !== undefined && window.cordova.plugins.notification !== undefined && window.cordova.plugins.notification.local !== undefined) {
             // Cordova local notification
             // Calculate notification id from buffer ID
@@ -131,6 +129,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
                 data: { buffer: buffer.id }  // remember buffer id for when the notification is clicked
             });
         }
+
     };
 
 
@@ -162,13 +161,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
 
         var activeBuffer = models.getActiveBuffer();
         if (activeBuffer) {
-            let title = activeBuffer.shortName + ' | ' + activeBuffer.rtitle;
-            $rootScope.pageTitle = title;
-            // If running in Tauri, use platform code to update its window title
-            if (utils.isTauri()) {
-                __TAURI__.window.appWindow.setTitle(title);
-            }
-            
+            $rootScope.pageTitle = activeBuffer.shortName + ' | ' + activeBuffer.rtitle;
         }
     };
 
@@ -176,6 +169,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
         if (utils.isCordova()) {
             return; // cordova doesn't have a favicon
         }
+
         var notifications = unreadCount('notification');
         if (notifications > 0) {
             $rootScope.favico.badge(notifications, {
@@ -201,9 +195,15 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
         }
     };
 
-    // Update app badge (tauri? only)
+    // Update app badge (electron only)
     var updateBadge = function(value) {
-        // leaving this a placeholder for future tauri badge operations
+
+        // Send new value to preloaded global function
+        // if it exists
+        if (typeof setElectronBadge === 'function') {
+            setElectronBadge(value);
+        }
+
     };
 
     /* Function gets called from bufferLineAdded code if user should be notified */

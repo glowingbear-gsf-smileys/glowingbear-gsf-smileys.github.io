@@ -1,24 +1,12 @@
+(function() {
 'use strict';
 
-import * as Favico from "favico.js";
-
-
-import { connectionFactory } from './connection';
-import { sortBy } from './misc';
-
-/* debounce helper so we dont have to use underscore.js */
-const debounce = function (func, wait, immediate) {
-    var timeout;
-    return function () {
-        var context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(function () {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        }, wait);
-        if (immediate && !timeout) func.apply(context, args);
-    };
-};
+// cordova splash screen
+document.addEventListener("deviceready", function () {
+    if (navigator.splashscreen !== undefined) {
+        navigator.splashscreen.hide();
+    }
+}, false);
 
 var weechat = angular.module('weechat', ['ngRoute', 'localStorage', 'weechatModels', 'bufferResume', 'plugins', 'IrcUtils', 'ngSanitize', 'ngWebsockets', 'ngTouch'], ['$compileProvider', function($compileProvider) {
     // hacky way to be able to find out if we're in debug mode
@@ -31,8 +19,8 @@ weechat.config(['$compileProvider', function ($compileProvider) {
     }
 }]);
 
-weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout','$location', '$log', 'models', 'bufferResume', 'connection', 'notifications', 'utils', 'settings',
-    function ($rootScope, $scope, $store, $timeout, $location, $log, models, bufferResume, connection, notifications, utils, settings)
+weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout', '$log', 'models', 'bufferResume', 'connection', 'notifications', 'utils', 'settings',
+    function ($rootScope, $scope, $store, $timeout, $log, models, bufferResume, connection, notifications, utils, settings)
 {
 
     window.openBuffer = function(channel) {
@@ -53,12 +41,9 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     // or else they won't be saved to the localStorage.
     settings.setDefaults({
         'theme': 'dark',
-        'hostField': 'localhost',
+        'host': 'localhost',
         'port': 9001,
-        'path': 'weechat',
         'ssl': (window.location.protocol === "https:"),
-        'compatibilityWeechat28': false,
-        'useTotp': false,
         'savepassword': false,
         'autoconnect': false,
         'nonicklist': utils.isMobileUi(),
@@ -77,21 +62,13 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         'customCSS': '',
         'translateNewlines': true,
         "currentlyViewedBuffers":{},
-        'iToken': '',
-        'iAlb': '',
-        'freenodeWarningRead': '',
     });
     $scope.settings = settings;
-
-    //For upgrade reasons because we changed the name of host to hostField
-    //check if the value might still be in the host key instead of the hostField key
-    if (!settings.hostField && settings.host) {
-        settings.hostField = settings.host; 
-    }
 
     $rootScope.countWatchers = function () {
         $log.debug($rootScope.$$watchersCount);
     };
+
 
     // Detect page visibility attributes
     (function() {
@@ -127,8 +104,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     })();
 
     // Show a TLS warning if GB was loaded over an unencrypted connection,
-    // except for local instances (local files, testing)
-    $scope.show_tls_warning = (["https:", "file:"].indexOf(window.location.protocol) === -1) &&
+    // except for local instances (testing, cordova, or electron)
+    $scope.show_tls_warning = (window.location.protocol !== "https:") &&
         (["localhost", "127.0.0.1", "::1"].indexOf(window.location.hostname) === -1) &&
         !window.is_electron && !utils.isCordova();
 
@@ -150,8 +127,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                 var buffer = models.getActiveBuffer();
                 // This can also be triggered before connecting to the relay, check for null (not undefined!)
                 if (buffer !== null) {
-                    var server = models.getServerForBuffer(buffer);
-                    server.unread -= (buffer.unread + buffer.notification);
                     buffer.unread = 0;
                     buffer.notification = 0;
 
@@ -165,9 +140,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         }, false);
     }
 
-    $rootScope.$on('nickListChanged', function() {
-            $scope.updateShowNicklist();
-    });
 
     $rootScope.$on('activeBufferChanged', function(event, unreadSum) {
         var ab = models.getActiveBuffer();
@@ -225,7 +197,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                         };
                         $rootScope.updateBufferBottom(true);
                         $rootScope.scrollWithBuffer(true);
-                        bl.onscroll = debounce(function() {
+                        bl.onscroll = _.debounce(function() {
                             $rootScope.updateBufferBottom();
                         }, 80);
                         setTimeout(scrollHeightObserver, 500);
@@ -265,7 +237,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     if (!utils.isCordova()) {
         $rootScope.favico = new Favico({animation: 'none'});
     }
-    
     $scope.notifications = notifications.unreadCount('notification');
     $scope.unread = notifications.unreadCount('unread');
 
@@ -286,7 +257,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
 
         // cancel outstanding notifications (incl cordova)
         notifications.cancelAll();
-
         if (window.plugin !== undefined && window.plugin.notification !== undefined && window.plugin.notification.local !== undefined) {
             window.plugin.notification.local.cancelAll();
         }
@@ -397,8 +367,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         document.getElementById('content').setAttribute('sidebar-state', 'visible');
         if (utils.isMobileUi()) {
             // de-focus the input bar when opening the sidebar on mobile, so that the keyboard goes down
-            // TODO: this should be using get element by id, since there is other texareas
-            Object.entries(document.getElementsByTagName('textarea')).forEach(function([key, elem]) {
+            _.each(document.getElementsByTagName('textarea'), function(elem) {
                 $timeout(function(){elem.blur();});
             });
         }
@@ -542,7 +511,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         // the messages in this buffer before you switched to the new one
         // this is only needed with new type of clearing since in the old
         // way WeeChat itself takes care of that part
-        if (settings.hotlistsync && models.version[0] >= 1) {
+        if (models.version[0] >= 1) {
             connection.sendHotlistClear();
         }
 
@@ -591,7 +560,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
 
     // Recalculate number of lines on resize
-    window.addEventListener("resize", debounce(function() {
+    window.addEventListener("resize", _.debounce(function() {
         // Recalculation fails when not connected
         if ($rootScope.connected) {
             // Show the sidebar if switching away from mobile view, hide it when switching to mobile
@@ -642,7 +611,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
             }
             $rootScope.bufferBottom = eob.offsetTop <= bl.scrollTop + bl.clientHeight;
     };
-
     $rootScope.scrollWithBuffer = function(scrollToReadmarker, moreLines) {
         // First, get scrolling status *before* modification
         // This is required to determine where we were in the buffer pre-change
@@ -676,87 +644,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         window.requestAnimationFrame(scroll);
     };
 
-    $scope.parseHost = function() {
-        //The host field is multi purpose for advanced users
-        //There can be a combination of host, port and path
-        //If host is specified here the dedicated port field is disabled
-        $rootScope.hostInvalid = false;
-
-        var parts;
-        var regexProto = /^(https?|wss?):\/\/(.+)$/;
-        var regexHost = /^([^:\/]*|\[.*\])$/;
-        var regexHostPort = /^([^:]*|\[.*\]):(\d+)$/;
-        var regexHostPortPath = /^([^:]*|\[.*\]):(\d+)\/(.+)$/;
-
-        // First, remove possible protocol info - we don't want it
-        if ((parts = regexProto.exec(settings.hostField)) !== null) {
-            settings.hostField = parts[2];
-            if (parts[1] === "http" || parts[1] === "ws") {
-                settings.ssl = false;
-            } else if (parts[1] === "https" || parts[1] === "wss") {
-                settings.ssl = true;
-            }
-        }
-
-        if ((parts = regexHost.exec(settings.hostField)) !== null) { //host only
-            settings.host = parts[1];
-            settings.path = "weechat";
-            $rootScope.portDisabled = false;
-        } else if ((parts = regexHostPort.exec(settings.hostField)) !== null) { //host:port
-            settings.host = parts[1];
-            settings.port = parts[2];
-            settings.path = "weechat";
-            $rootScope.portDisabled = true;
-        } else if ((parts = regexHostPortPath.exec(settings.hostField)) !== null) { //host:port/path
-            settings.host = parts[1];
-            settings.port = parts[2];
-            settings.path = parts[3];
-            $rootScope.portDisabled = true;
-        } else {
-            $rootScope.hostInvalid = true;
-        }
-    };
-
-    settings.addCallback('useTotp', function() {
-        if (settings.useTotp) {
-            settings.autoconnect = false;
-        }
-    });
-
-    $scope.parseTotp = function() {
-        $scope.totpInvalid = !/^\d{4,10}$/.test($scope.totp);
-    };
-
-    $scope.parseHash = function() {
-
-        //Fill in url parameters, they take precedence over the stored settings, but store them
-        var params = {};
-        $location.$$hash.split('&').map(function(val) {
-            var segs = val.split('=');
-            params[segs[0]] = segs[1];
-        });
-        if (params.host) {
-            $scope.settings.host = params.host;
-            $scope.settings.hostField = params.host;
-        }
-        if (params.port) {
-            $scope.settings.port =  parseInt(params.port);
-        }
-        if (params.path) {
-            $scope.settings.path = params.path;
-            $scope.settings.hostField = $scope.settings.host + ":" + $scope.settings.port + "/" + $scope.settings.path;
-        }
-        if (params.password) {
-            $scope.password = params.password;
-        }
-        if (params.autoconnect) {
-            $scope.settings.autoconnect = params.autoconnect === 'true';
-        }
-
-    };
 
     $scope.connect = function() {
-        document.getElementById('audioNotificationInitializer').play(); // Plays some silence, this will enable autoplay for notifications
         notifications.requestNotificationPermission();
         $rootScope.sslError = false;
         $rootScope.securityError = false;
@@ -764,17 +653,14 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         $rootScope.bufferBottom = true;
         $scope.connectbutton = 'Connecting';
         $scope.connectbuttonicon = 'glyphicon-refresh glyphicon-spin';
-        connection.connect(settings.host, settings.port, settings.path, $scope.password, settings.ssl, settings.useTotp, $scope.totp);
-        $scope.totp = ""; // Clear for next time
+        connection.connect(settings.host, settings.port, $scope.password, settings.ssl);
     };
-
     $scope.disconnect = function() {
         $scope.connectbutton = 'Connect';
         $scope.connectbuttonicon = 'glyphicon-chevron-right';
         bufferResume.reset();
         connection.disconnect();
     };
-    
     $scope.reconnect = function() {
         var bufferId = models.getActiveBuffer().id;
         connection.attemptReconnect(bufferId, 3000);
@@ -783,7 +669,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     $scope.showModal = function(elementId) {
         document.getElementById(elementId).setAttribute('data-state', 'visible');
     };
-
     $scope.closeModal = function($event) {
         function closest(elem, selector) {
             var matchesSelector = elem.matches || elem.webkitMatchesSelector || elem.mozMatchesSelector || elem.msMatchesSelector;
@@ -800,15 +685,6 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         event.preventDefault();
 
         var target = event.target.parentNode.parentNode.parentNode;
-        toggleAccordionByTarget(target);
-    };
-
-    $scope.toggleAccordionByName = function(name) {
-        var target = document.getElementById(name);
-        toggleAccordionByTarget(target);
-    };
-
-    var toggleAccordionByTarget = function(target) {
         target.setAttribute('data-state', target.getAttribute('data-state') === 'active' ? 'collapsed' : 'active');
 
         // Hide all other siblings
@@ -838,16 +714,11 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                 return true;
             }
 
-            // In hierarchical view, show server iff it has a buffer with unread messages
-            if (settings.orderbyserver && buffer.type === 'server') {
-                return models.getServerForBuffer(buffer).unread > 0;
-            }
-
             // Always show pinned buffers
             if (buffer.pinned) {
                 return true;
             }
-            return (buffer.unread > 0 && !buffer.hidden) || buffer.notification > 0;
+            return (buffer.unread > 0 || buffer.notification > 0) && !buffer.hidden;
         }
         return !buffer.hidden;
     };
@@ -892,7 +763,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
     $scope.updateShowNicklist = function() {
         var ab = models.getActiveBuffer();
         // Check whether buffer exists and nicklist is non-empty
-        if (!ab || !ab.nicklistRequested() || ab.isNicklistEmpty()) {
+        if (!ab || ab.isNicklistEmpty()) {
             $scope.showNicklist = false;
             return false;
         }
@@ -907,30 +778,26 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
             return true;
         }
         $scope.showNicklist = true;
-        // hack: retrigger the favorite-font update mechanism when showing the
-        // nicklist because the div is ng-if=showNicklist instead of ng-show for
-        // performance reasons (especially on mobile)
-        $timeout(function() {
-            utils.changeClassStyle('favorite-font', 'fontFamily', settings.fontfamily);
-            utils.changeClassStyle('favorite-font', 'fontSize', settings.fontsize);
-        }, 0);
         return true;
     };
 
 //XXX not sure whether this belongs here
     $rootScope.switchToActivityBuffer = function() {
         // Find next buffer with activity and switch to it
-        var sortedBuffers = Object.entries($scope.getBuffers()).sort(sortBy('number'));
+        var sortedBuffers = _.sortBy($scope.getBuffers(), 'number');
+        var i, buffer;
         // Try to find buffer with notification
-        for (const [bufferid, buffer] of sortedBuffers) {
+        for (i in sortedBuffers) {
+            buffer = sortedBuffers[i];
             if (buffer.notification > 0) {
                 $scope.setActiveBuffer(buffer.id);
                 return;  // return instead of break so that the second for loop isn't executed
             }
         }
         // No notifications, find first buffer with unread lines instead
-        for (const [bufferid, buffer] of sortedBuffers) {
-            if (buffer.unread > 0 && !buffer.hidden) {
+        for (i in sortedBuffers) {
+            buffer = sortedBuffers[i];
+            if (buffer.unread > 0) {
                 $scope.setActiveBuffer(buffer.id);
                 return;
             }
@@ -943,20 +810,14 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
 
     $rootScope.switchToAdjacentBuffer = function(direction) {
         // direction is +1 for next buffer, -1 for previous buffer
-        var sortedBuffers = Object.values($scope.getBuffers()).sort(sortBy($rootScope.predicate));
+        var sortedBuffers = _.sortBy($scope.getBuffers(), $rootScope.predicate);
         var activeBuffer = models.getActiveBuffer();
-        var index = sortedBuffers.indexOf(activeBuffer) + direction;
-        var newBuffer;
-
-        // look for next non-hidden buffer
-        while (index >= 0 && index < sortedBuffers.length &&
-               (!newBuffer || newBuffer.hidden)) {
-            newBuffer = sortedBuffers[index];
-            index += direction;
-        }
-
-        if (!!newBuffer) {
-            $scope.setActiveBuffer(newBuffer.id);
+        var index = sortedBuffers.indexOf(activeBuffer);
+        if (index >= 0) {
+            var newBuffer = sortedBuffers[index + direction];
+            if (newBuffer) {
+                $scope.setActiveBuffer(newBuffer.id);
+            }
         }
     };
 
@@ -1029,33 +890,42 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
             if ($rootScope.connected) {
                 $scope.disconnect();
             }
+
+            if (!utils.isCordova()) {
+                $scope.favico.reset();
+            }
         }
     };
 
-    window.onhashchange = function() {
-        $scope.parseHash();
-    };
-
     $scope.init = function() {
-        $scope.parseHost();
-        $scope.parseHash();
+        if (window.location.hash) {
+            var rawStr = atob(window.location.hash.substring(1));
+            window.location.hash = "";
+            var spl = rawStr.split(":");
+            var host = spl[0];
+            var port = parseInt(spl[1]);
+            var password = spl[2];
+            var ssl = spl.length > 3;
+            notifications.requestNotificationPermission();
+            $rootScope.sslError = false;
+            $rootScope.securityError = false;
+            $rootScope.errorMessage = false;
+            $rootScope.bufferBottom = true;
+            $scope.connectbutton = 'Connecting';
+            $scope.connectbuttonicon = 'glyphicon-chevron-right';
+            connection.connect(host, port, password, ssl);
+        }
     };
 
 }]);
 
-weechat.config(['$routeProvider', '$locationProvider',
-    function($routeProvider, $locationProvider) {
-        $routeProvider.when('', {
+weechat.config(['$routeProvider',
+    function($routeProvider) {
+        $routeProvider.when('/', {
             templateUrl: 'index.html',
             controller: 'WeechatCtrl'
-        });
-
-        //remove hashbang from url
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
         });
     }
 ]);
 
-weechat.factory('connection', connectionFactory);
+})();
