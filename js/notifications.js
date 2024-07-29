@@ -25,7 +25,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
         }
 
         // Check for serviceWorker support, and also disable serviceWorker if we're running in tauri process, since that's just problematic and not necessary, since gb then already is in a separate process
-        if ('serviceWorker' in navigator && !utils.isTauri()) {
+        if ('serviceWorker' in navigator && !utils.isTauri() && window.is_electron !== 1) {
             $log.info('Service Worker is supported');
             navigator.serviceWorker.register('serviceworker.js').then(function(reg) {
                 $log.info('Service Worker install:', reg);
@@ -34,6 +34,21 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
                 $log.info('Service Worker err:', err);
             });
         }
+
+        document.addEventListener('deviceready', function() {
+            // Add cordova local notification click handler
+            if (utils.isCordova() && window.cordova.plugins !== undefined && window.cordova.plugins.notification !== undefined &&
+                window.cordova.plugins.notification.local !== undefined) {
+                window.cordova.plugins.notification.local.on("click", function (notification) {
+                    // go to buffer
+                    var data = JSON.parse(notification.data);
+                    models.setActiveBuffer(data.buffer);
+                    window.focus();
+                    // clear this notification
+                    window.cordova.plugins.notification.local.clear(notification.id);
+                });
+            }
+        });
     };
 
     var showNotification = function(buffer, title, body) {
@@ -41,7 +56,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
         if (serviceworker) {
             navigator.serviceWorker.ready.then(function(registration) {
                 registration.showNotification(title, {
-                    body: body,
+                    body: body.replace(/\\n/g, "\n"),
                     icon: 'assets/img/glowing_bear_128x128.png',
                     vibrate: [200, 100],
                     tag: 'gb-highlight-vib'
@@ -99,6 +114,22 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
             notification.onclose = function() {
                 delete notifications[this.id];
             };
+        } else if (utils.isCordova() && window.cordova.plugins !== undefined && window.cordova.plugins.notification !== undefined && window.cordova.plugins.notification.local !== undefined) {
+            // Cordova local notification
+            // Calculate notification id from buffer ID
+            // Needs to be unique number, but we'll only ever have one per buffer
+            var id = parseInt(buffer.id, 16);
+
+            // Cancel previous notification for buffer (if there was one)
+            window.cordova.plugins.notification.local.clear(id);
+
+            // Send new notification
+            window.cordova.plugins.notification.local.schedule({
+                id: id,
+                text: body,
+                title: title,
+                data: { buffer: buffer.id }  // remember buffer id for when the notification is clicked
+            });
         }
     };
 
@@ -142,6 +173,9 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
     };
 
     var updateFavico = function() {
+        if (utils.isCordova()) {
+            return; // cordova doesn't have a favicon
+        }
         var notifications = unreadCount('notification');
         if (notifications > 0) {
             $rootScope.favico.badge(notifications, {
@@ -201,7 +235,7 @@ weechat.factory('notifications', ['$rootScope', '$log', 'models', 'settings', 'u
 
         showNotification(buffer, title, body);
 
-        if (settings.soundnotification) {
+        if (!utils.isCordova() && settings.soundnotification) {
             var audioFile = "assets/audio/sonar";
             var soundHTML = '<audio autoplay="autoplay"><source src="' + audioFile + '.ogg" type="audio/ogg" /><source src="' + audioFile + '.mp3" type="audio/mpeg" /></audio>';
             document.getElementById("soundNotification").innerHTML = soundHTML;

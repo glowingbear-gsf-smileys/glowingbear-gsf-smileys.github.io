@@ -24,6 +24,10 @@ weechat.factory('utils', function() {
         return (document.body.clientWidth < mobile_cutoff);
     };
 
+    var isCordova = function() {
+        return window.cordova !== undefined;
+    };
+
     const _isTauri = window.__TAURI__ !== undefined;
     var isTauri = function() {
         return _isTauri;
@@ -86,6 +90,7 @@ weechat.factory('utils', function() {
     	changeClassStyle: changeClassStyle,
     	getClassStyle: getClassStyle,
         isMobileUi: isMobileUi,
+        isCordova: isCordova,
         isTauri: isTauri,
         inject_script: inject_script,
         inject_css: inject_css,
