@@ -1,15 +1,15 @@
 
 "use strict";
 
-// import "angular";
-// import "angular-route";
-// import "angular-sanitize";
-// import "angular-touch";
+import "angular";
+import "angular-route";
+import "angular-sanitize";
+import "angular-touch";
 
-import "./3rdparty/angular.min.js";
-import "./3rdparty/angular-route.min.js";
-import "./3rdparty/angular-sanitize.min.js";
-import "./3rdparty/angular-touch.min.js";
+// import "./3rdparty/angular.min.js";
+// import "./3rdparty/angular-route.min.js";
+// import "./3rdparty/angular-sanitize.min.js";
+// import "./3rdparty/angular-touch.min.js";
 
 import "./3rdparty/underscore-min.js";
 import "./3rdparty/inflate.min.js";
