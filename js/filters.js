@@ -163,7 +163,7 @@ weechat.filter('conditionalLinkify', ['$filter', function($filter) {
 weechat.filter('DOMfilter', ['$filter', '$sce', function($filter, $sce) {
     // To prevent nested anchors, we need to know if a filter is going to create them.
     // Here's a list of names. See #681 for more information.
-    var filtersThatCreateAnchors = ['irclinky'];
+    var filtersThatCreateAnchors = ['irclinky', 'gsf_smileys'];
 
     return function(text, filter) {
         if (!text || !filter) {
