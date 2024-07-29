@@ -13,19 +13,20 @@
     <!-- https://w3c.github.io/manifest/ && https://developer.mozilla.org/en-US/docs/Web/Manifest -->
     <link rel="manifest" href="webapp.manifest.json">
     <title ng-bind-template="{{ notificationStatus }}Glowing Bear {{ pageTitle}}"></title>
-    <link href="3rdparty/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!-- <link href="3rdparty/bootstrap.min.css" rel="stylesheet" media="screen"> -->
     <link rel="shortcut icon" sizes="128x128" href="assets/img/glowing_bear_128x128.png">
     <link rel="apple-touch-icon" sizes="128x128" href="assets/img/glowing_bear_128x128.png">
     <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png" >
+    <link href="css/bootstrap.min.css" rel="stylesheet"/>
     <link href="css/glowingbear.css" rel="stylesheet" media="screen">
     <link href="css/themes/dark.css" rel="stylesheet" media="screen" id="themeCSS" />
     <!-- <script src="3rdparty/angular.min.js"></script>
     <script src="3rdparty/angular-route.min.js"></script>
     <script src="3rdparty/angular-sanitize.min.js"></script>
     <script src="3rdparty/angular-touch.min.js"></script> -->
-    <!-- <script src="emojione.min.js"></script>
+    <script src="emojione.min.js"></script>
     <script src="linkify.min.js"></script>
-    <script src="linkify-string.min.js"></script> -->
+    <script src="linkify-string.min.js"></script>
     <!-- <script type="text/javascript" src="smileys/directory.json"></script>   -->
   <script defer src="main.js"></script></head>
   <body ng-controller="WeechatCtrl" ng-keydown="handleKeyPress($event)" ng-keyup="handleKeyRelease($event)"  ng-keypress="handleKeyPress($event)" ng-class="{'no-overflow': connected}" ng-init="init()" lang="en-US">
