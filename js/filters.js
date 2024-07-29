@@ -25,6 +25,12 @@ weechat.filter('toArray', function () {
     };
 });
 
+weechat.filter('escapeHtml', function() {
+    return function(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    };
+});
+
 weechat.filter('irclinky', function() {
     return function(text) {
         if (!text) {

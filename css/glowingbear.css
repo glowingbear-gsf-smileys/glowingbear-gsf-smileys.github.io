@@ -72,9 +72,6 @@ td.message {
 #sendMessage:focus, #sendMessage:active {
     border-bottom: 2px solid #555;
 }
-#sidebar {
-    scrollbar-width: none;
-}
 
 .input-group-btn {
     vertical-align: top;
@@ -619,7 +616,6 @@ h2 span, h2 small {
 
 .panel[data-state=active] .panel-collapse {
     transition: max-height 0.5s;
-    max-height: 60em;
     height: auto;
     display: block;
 }
@@ -823,11 +819,6 @@ li.buffer.indent.private a {
         -webkit-transform: translate(0,0); /* Safari */
     }
 
-    #sidebar[data-state=hidden] {
-        transform: translate(-200px,0);
-        -webkit-transform: translate(-200px,0);
-    }
-
     .content[sidebar-state=visible] #bufferlines, .content[sidebar-state=visible] .footer {
         margin-left: 0px;
         transform: translate(200px,0);
@@ -849,10 +840,6 @@ li.buffer.indent.private a {
 
     #topbar .brand img {
         height: 28px;
-    }
-
-    #topbar .badge {
-        display: none;
     }
 
     #bufferlines, #nicklist {

@@ -11,6 +11,14 @@
  * @version 0.3.10
  */
 
+/**
+ * @license MIT or GPL-2.0
+ * @fileOverview Favico animations
+ * @author Miroslav Magda, http://blog.ejci.net
+ * @source: https://github.com/ejci/favico.js
+ * @version 0.3.10
+ */
+
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
 
 /*@cc_on!@*/

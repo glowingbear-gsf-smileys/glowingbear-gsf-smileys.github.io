@@ -23,6 +23,10 @@ html {
     background-color: inherit;
 }
 
+#sidebar {
+    scrollbar-width: none;
+}
+
 .repeated-time .cob-chat_time,
 .repeated-time .cob-chat_time_delimiters {
     background-color: transparent;
@@ -161,11 +165,21 @@ input[type=text].is-invalid{
     -moz-box-shadow: rgba(255, 255, 255, 0.07) 0 -1px 0;
     box-shadow: rgba(255, 255, 255, 0.07) 0 -1px 0;
     border-top: 1px solid #121212;
+    max-height: 60em;
 }
 
 #readmarker {
     border-top-color: rgba(255, 255, 255, 0.3);
     border-bottom-color: #121212;
+}
+
+#sidebar[data-state=hidden] {
+    transform: translate(-200px,0);
+    -webkit-transform: translate(-200px,0);
+}
+
+#topbar .badge {
+    display: none;
 }
 
 button.close {
