@@ -225,7 +225,9 @@ input[type=text], input[type=password], #sendMessage {
     overflow-y: auto;
     overflow-x: hidden;
     padding-top: 35px; /* topbar */
+    padding-right: env(safe-area-inset-right);
     padding-bottom: 1px; /* need to force a padding here */
+    padding-left: env(safe-area-inset-left);
     font-size: smaller;
     transition:0.2s ease-in-out;
     z-index: 2;
@@ -273,9 +275,9 @@ input[type=text], input[type=password], #sendMessage {
     overflow-x: hidden;
     right: 0;
     top: 0;
-    padding-top: 39px;
+    margin-top: 39px;
     padding-left: 5px;
-    padding-bottom: 35px;
+    padding-bottom: 44px;
     z-index: 2;
 }
 #nicklist ul {
@@ -335,6 +337,7 @@ input[type=text], input[type=password], #sendMessage {
 .content {
     height: 100%;
     min-height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #bufferlines {
@@ -390,6 +393,7 @@ td.time {
     bottom: 0;
     height: 35px;
     width: 100%;
+    margin-bottom: env(safe-area-inset-bottom); /* margin for home-indicator on iPhone X */
     -webkit-transition:0.2s ease-in-out all;
     transition:0.2s ease-in-out all;
     z-index: 1;
@@ -682,6 +686,21 @@ li.buffer.indent.private a {
     user-select: none;
 }
 
+.emojione {
+    font-size: inherit;
+    height: 1em;
+    width: 1.1em;
+    min-height: 16px;
+    min-width: 16px;
+    display: inline-block;
+    margin: -.2ex .15em .2ex;
+    line-height: normal;
+    vertical-align: middle;
+}
+img.emojione {
+    width: auto;
+}
+
 .glyphicon-spin {
   -webkit-animation: spin 1000ms infinite linear;
   animation: spin 1000ms infinite linear;
@@ -836,6 +855,11 @@ li.buffer.indent.private a {
 
     .nav-pills {
         font-size: 14px;
+    }
+
+    .nav-pills li.buffer {
+        min-height: 30px;
+        max-height: 30px;
     }
 
     .nav-pills li a {

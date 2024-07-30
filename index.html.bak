@@ -221,20 +221,19 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
           </div>
           <div id="collapseFour" class="panel-collapse collapse">
             <div class="panel-body">
-              <p>You don't need to install anything to use Glowing Bear, it works with any modern browser. Start using it <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">right now</a> at the top of the page! However, there are a few ways to improve integration with your operating system.</p>
-              <h3>Mobile Applications</h3>
-              <p>If you're running Android 4.4 or later, you can install our app from the Google Play Store! We can't distribute on iOS unfortunately, but if you're a developer, you can <a href="https://github.com/glowing-bear/glowing-bear-cordova">follow the sideloading instructions</a>.</p>
-              <p><a href="https://play.google.com/store/apps/details?id=com.glowing_bear"><img alt="Android app on Google Play" src="assets/img/badge_playstore.png" /></a></p>
+              <p>You don't need to install anything to use Glowing Bear, it works with any modern browser. Start using it right now at the top of the page! However, there are a few ways to improve integration with your operating system.</p>
               <h3>Electron</h3>
               <p>Glowing Bear supports the electron shell. You'll have to build it yourself, though. Run the following commands, choosing your platform from the list in the last command: <pre>git clone https://github.com/glowing-bear/glowing-bear
 cd glowing-bear
 npm install
 npm install electron-packager
 npm run build-electron-{windows, darwin, linux}</pre>
-              <h3>Firefox Browser</h3>
-              <p>Firefox used to support apps, but this was removed from Firefox. There's nothing we can do about it. Sorry!</p>
               <h3>Chrome</h3>
               <p>To install Glowing Bear as an app in Chrome for Android, select <kbd>Menu - Add to home screen</kbd>. In the desktop version of Chrome, click <kbd>Menu - More tools - Create application shortcuts</kbd>.</p>
+              <h3>Android App</h3>
+              <p>We used to have an Android app, but discontinued it for lack of maintainers. You can still build it for yourself, see <a href="https://github.com/glowing-bear/glowing-bear-cordova">the app repository</a> for instructions. Sorry!</p>
+              <h3>Firefox Browser</h3>
+              <p>Firefox used to support apps, but this was removed from Firefox. There's nothing we can do about it. Sorry!</p>
             </div>
           </div>
         </div>
@@ -311,7 +310,7 @@ npm run build-electron-{windows, darwin, linux}</pre>
           </li>
         </ul>
       </div>
-      <div id="nicklist" ng-if="showNicklist" ng-swipe-right="swipeRight()" ng-swipe-disable-mouse class="vertical-line-left">
+      <div id="nicklist" ng-if="showNicklist" ng-swipe-right="swipeRight()" ng-swipe-disable-mouse class="favorite-font vertical-line-left">
         <ul class="nicklistgroup list-unstyled" ng-repeat="group in nicklist">
           <li ng-repeat="nick in group.nicks|orderBy:'name'">
             <a ng-click="openBuffer(nick.name)"><span ng-class="::nick.prefixClasses" ng-bind="::nick.prefix"></span><span ng-class="::nick.nameClasses" ng-bind="::nick.name"></span></a>
@@ -335,10 +334,10 @@ npm run build-electron-{windows, darwin, linux}</pre>
                   <span class="cof-chat_time cob-chat_time coa-chat_time" ng-bind-html="::bufferline.formattedTime"></span>
                 </span>
               </td>
-              <td class="prefix"><span ng-class="::{'repeated-prefix': bufferline.prefixtext==bufferlines[$index-1].prefixtext}"><a ng-click="addMention(bufferline.prefix)"><span class="hidden-bracket">&lt;</span><span ng-repeat="part in ::bufferline.prefix" ng-class="::part.classes" ng-bind="::part.text|prefixlimit:25"></span><span class="hidden-bracket">&gt;</span></a></span></td><!--
+              <td class="prefix"><span ng-class="::{'repeated-prefix': bufferline.prefixtext==bufferlines[$index-1].prefixtext}"><a ng-click="addMention(bufferline)"><span class="hidden-bracket" ng-if="::(bufferline.showHiddenBrackets)">&lt;</span><span ng-repeat="part in ::bufferline.prefix" ng-class="::part.classes" ng-bind="::part.text|prefixlimit:25"></span><span class="hidden-bracket" ng-if="::(bufferline.showHiddenBrackets)">&gt;</span></a></span></td><!--
            --><td class="message"><!--
              --><div ng-repeat="metadata in ::bufferline.metadata" plugin data="::metadata"></div><!--
-             --><span ng-repeat="part in ::bufferline.content" class="text" ng-class="::part.classes.concat(['line-' + part.$$hashKey.replace(':','_')])" ng-bind-html="::part.text | escapeHtml | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'irclinky' | DOMfilter:'gbs_smileys'| DOMfilter:'inlinecolour' | DOMfilter:'latexmath':('.line-' + part.$$hashKey.replace(':','_')):settings.enableMathjax"></span>
+             --><span ng-repeat="part in ::bufferline.content" class="text" ng-class="::part.classes.concat(['line-' + part.$$hashKey.replace(':','_')])" ng-bind-html="::part.text |  escapeHtml | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'irclinky' | DOMfilter:'gbs_smileys'| DOMfilter:'inlinecolour' | DOMfilter:'latexmath':('.line-' + part.$$hashKey.replace(':','_')):settings.enableMathjax"></span>
               </td>
             </tr>
             <tr class="readmarker" ng-if="activeBuffer().lastSeen==$index">
@@ -365,7 +364,7 @@ npm run build-electron-{windows, darwin, linux}</pre>
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" ng-click="closeModal($event)" aria-hidden="true">&times;</button>
-            <span class="pull-right version">Glowing Bear version 0.7.0</span>
+            <span class="pull-right version">Glowing Bear version 0.7.1</span>
             <h4 class="modal-title">Settings</h4>
             <p>Settings will be stored in your browser.</p>
           </div>
