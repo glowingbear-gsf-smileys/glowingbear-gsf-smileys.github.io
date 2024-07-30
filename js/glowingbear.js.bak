@@ -57,6 +57,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         'fontsize': '14px',
         'fontfamily': (utils.isMobileUi() ? 'sans-serif' : 'Inconsolata, Consolas, Monaco, Ubuntu Mono, monospace'),
         'readlineBindings': false,
+        'enableJSEmoji': !utils.isMobileUi(),
         'enableMathjax': false,
         'enableQuickKeys': true,
         'customCSS': '',
@@ -109,6 +110,13 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         (["localhost", "127.0.0.1", "::1"].indexOf(window.location.hostname) === -1) &&
         !window.is_electron && !utils.isCordova();
 
+    if (window.is_electron) {
+        // Use packaged emojione sprite in the electron app
+        emojione.imageType = 'svg';
+        emojione.sprites = true;
+        emojione.imagePathSVGSprites = './3rdparty/emojione.sprites.svg';
+    }
+
     $rootScope.isWindowFocused = function() {
         if (typeof $scope.documentHidden === "undefined") {
             // Page Visibility API not supported, assume yes
@@ -127,6 +135,8 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                 var buffer = models.getActiveBuffer();
                 // This can also be triggered before connecting to the relay, check for null (not undefined!)
                 if (buffer !== null) {
+                    var server = models.getServerForBuffer(buffer);
+                    server.unread -= (buffer.unread + buffer.notification);
                     buffer.unread = 0;
                     buffer.notification = 0;
 
@@ -709,16 +719,20 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
                 return true;
             }
             // Always show core buffer in the list (issue #438)
-            // Also show server buffers in hierarchical view
-            if (buffer.fullName === "core.weechat" || (settings.orderbyserver && buffer.type === 'server')) {
+            if (buffer.fullName === "core.weechat") {
                 return true;
+            }
+
+            // In hierarchical view, show server iff it has a buffer with unread messages
+            if (settings.orderbyserver && buffer.type === 'server') {
+                return models.getServerForBuffer(buffer).unread > 0;
             }
 
             // Always show pinned buffers
             if (buffer.pinned) {
                 return true;
             }
-            return (buffer.unread > 0 || buffer.notification > 0) && !buffer.hidden;
+            return (buffer.unread > 0 && !buffer.hidden) || buffer.notification > 0;
         }
         return !buffer.hidden;
     };
@@ -797,7 +811,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         // No notifications, find first buffer with unread lines instead
         for (i in sortedBuffers) {
             buffer = sortedBuffers[i];
-            if (buffer.unread > 0) {
+            if (buffer.unread > 0 && !buffer.hidden) {
                 $scope.setActiveBuffer(buffer.id);
                 return;
             }
@@ -812,12 +826,18 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         // direction is +1 for next buffer, -1 for previous buffer
         var sortedBuffers = _.sortBy($scope.getBuffers(), $rootScope.predicate);
         var activeBuffer = models.getActiveBuffer();
-        var index = sortedBuffers.indexOf(activeBuffer);
-        if (index >= 0) {
-            var newBuffer = sortedBuffers[index + direction];
-            if (newBuffer) {
-                $scope.setActiveBuffer(newBuffer.id);
-            }
+        var index = sortedBuffers.indexOf(activeBuffer) + direction;
+        var newBuffer;
+
+        // look for next non-hidden buffer
+        while (index >= 0 && index < sortedBuffers.length &&
+               (!newBuffer || newBuffer.hidden)) {
+            newBuffer = sortedBuffers[index];
+            index += direction;
+        }
+
+        if (!!newBuffer) {
+            $scope.setActiveBuffer(newBuffer.id);
         }
     };
 
