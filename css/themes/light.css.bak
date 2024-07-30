@@ -1,22 +1,9 @@
 body {
-    background-color: #181818;
-    color: #ddd;
+    background-color: #fdfdfd;
+    color: #181818;
 }
-
-.form-control {
-    color: #ccc;
-    box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.1), 0px 1px 7px 0px rgba(0, 0, 0, 0.8) inset;
-    background: none repeat scroll 0% 0% rgba(0, 0, 0, 0.3);
-    border: 0px none;
-}
-
-.form-control[disabled] {
-    background: none repeat scroll 0% 0% rgba(63, 63, 63, 0.3);
-}
-
-.form-control option {
-   color: #eee;
-   background: #282828;
+#nicklist, .footer {
+    background-color: #f7f7f7;
 }
 
 html {
@@ -26,17 +13,13 @@ html {
 .repeated-time .cob-chat_time,
 .repeated-time .cob-chat_time_delimiters {
     background-color: transparent;
-    color: #333;
-}
-
-.nav-pills > li.active > a {
-    background-color: #555;
+    color: #ccc;
 }
 
 /* fix for mobile firefox which ignores :hover */
-.nav-pills > li > a:active, .nav-pills > li > a:active span, .nav-pills > li.active > a:hover {
-    background-color: #eee;
-    color: #222;
+.nav-pills > li > a:active, .nav-pills > li > a:active span {
+    color: #eee;
+    background-color: #222;
 }
 
 .nav-pills > li.highlight > a, .nav-pills > li.highlight > a span {
@@ -44,8 +27,15 @@ html {
     background: #428BCA;
 }
 
+.btn-complete-nick,
+.btn-send,
+.btn-send-image, {
+    background: none repeat scroll 0% 0% rgba(255, 255, 255, 0.3);
+    color: #428BCA;
+}
+
 tr.bufferline:hover {
-    background-color: #222222;
+    background-color: #efefef;
 }
 
 .danger, .alert-danger, .badge .alert-danger, .badge.danger {
@@ -55,15 +45,6 @@ tr.bufferline:hover {
 .alert-danger {
     border-color: #121212;
     color: black;
-}
-
-.btn-default {
-    background-color: #555;
-    border-color: #444;
-}
-.btn-default:hover {
-    background-color: #666;
-    border-color: #555;
 }
 
 li.notification {
@@ -79,23 +60,13 @@ li.notification {
 }
 
 .gb-modal .backdrop {
-    background-color:rgba(0, 0, 0, 0.5)
+    background-color:rgba(255, 255, 255, 0.5)
 }
 
-input[type=text], input[type=password], #sendMessage, .badge {
-    box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.1), 0px 1px 7px 0px rgba(0, 0, 0, 0.8) inset;
-}
-
-input[type=text], input[type=password], #sendMessage, .badge, .btn-send, .btn-send-image, .btn-complete-nick {
-    color: #ccc;
-    background: none repeat scroll 0% 0% rgba(0, 0, 0, 0.3);
-}
-
-.btn-complete-nick:hover, .btn-complete-nick:focus,
-.btn-send:hover, .btn-send:focus,
-.btn-send-image:hover, .btn-send-image:focus {
-    background-color: #555;
-    color: white;
+select.form-control, select option, input[type=text], input[type=password], #sendMessage, .badge {
+    color: #333;
+    box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.1), 0px 1px 7px 0px rgba(255, 255, 255, 0.8) inset;
+    background: none repeat scroll 0% 0% rgba(255, 255, 255, 0.3);
 }
 
 #connection-infos {
@@ -103,15 +74,15 @@ input[type=text], input[type=password], #sendMessage, .badge, .btn-send, .btn-se
 }
 
 .nav-pills li:nth-child(2n) {
-    background: #232323;
+    background: #e1e1e1;
 }
 
 .nav-pills > li > a {
-    color: #ddd;
+    color: #222;
 }
 
 .nav-pills > li > a:hover, .nav-pills > li > a:hover span {
-    color: #222;
+    color: #555;
 }
 
 .color-light-green {
@@ -123,16 +94,22 @@ input[type=text], input[type=password], #sendMessage, .badge, .btn-send, .btn-se
 }
 
 #topbar .actions {
-    background: #282828;
-    color: #666;
+    background: #e7e7e7;
 }
 
 #topbar, #sidebar, .panel, .dropdown-menu, .modal-content {
-    background: #282828;
+    background: #e7e7e7;
+}
+
+#sidebar .buffer .buffer-quick-key {
+    text-shadow: -1px 0px 4px rgba(0, 0, 0, 0.2),
+    0px -1px 4px rgba(0, 0, 0, 0.2),
+    1px 0px 4px rgba(0, 0, 0, 0.2),
+    0px 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 #nicklist a:hover {
-    background: #3b3b3b;
+     background: #eee;
 }
 
 .horizontal-line {
@@ -165,66 +142,57 @@ input[type=text], input[type=password], #sendMessage, .badge, .btn-send, .btn-se
     border-bottom-color: #121212;
 }
 
-button.close {
-    color: #ddd;
-    opacity: 1;
-}
-
-button.close:hover {
-    color: #ddd;
-}
-
 /****************************/
 /* Weechat colors and style */
 /****************************/
 /* style options, foreground */
 .cof-separator {
-    color: #68b5d4;
+    color: #345A6A;
 }
 .cof-chat {
-    color: #d9d9d9;
+    color: #575757;
 }
 .cof-chat_time {
-    color: #f7f7f7;
+    color: #636363;
 }
 .cof-chat_time_delimiters {
-    color: #cc843b;
+    color: #66421E;
 }
 .cof-chat_prefix_error {
-    color: #ffe377;
+    color: #80723C;
 }
 .cof-chat_prefix_network {
-    color: #fbb1f9;
+    color: #644764;
 }
 .cof-chat_prefix_action {
-    color: #f7f7f7;
+    color: #636363;
 }
 .cof-chat_prefix_join {
-    color: #cdee69;
+    color: #525F2A;
 }
 .cof-chat_prefix_quit {
-    color: #c75646;
+    color: #642B23;
 }
 .cof-chat_prefix_more {
-    color: #fbb1f9;
+    color: #644764;
 }
 .cof-chat_prefix_suffix {
-    color: #cdee69;
+    color: #525F2A;
 }
 .cof-chat_buffer {
-    color: #f7f7f7;
+    color: #4A4A4A;
 }
 .cof-chat_server {
-    color: #cc843b;
+    color: #523518;
 }
 .cof-chat_channel {
-    color: #f7f7f7;
+    color: #636363;
 }
 .cof-chat_nick {
-    color: #77dfd8;
+    color: #305956;
 }
 .cof-chat_nick_self {
-    color: #ffffff;
+    color: #4C4C4C;
     font-weight: bold;
 }
 .cof-chat_nick_other {
@@ -232,62 +200,62 @@ button.close:hover {
 }
 .cof-invalid {
     /* should never happen */
-    color: #f7f7f7;
+    color: #4A4A4A;
     background-color: transparent;
 }
 .cof-chat_host {
-    color: #77dfd8;
+    color: #305956;
 }
 .cof-chat_delimiters {
-    color: #cdee69;
+    color: #525F2A;
 }
 .cof-chat_highlight {
-    color: #ffe377;
-    background-color: #c8a0d1;
+    color: #665B30;
+    background-color: #504054;
 }
 .cof-chat_read_marker {
-    color: #fbb1f9;
+    color: #644764;
 }
 .cof-chat_text_found {
-    color: #ffe377;
+    color: #665B30;
 }
 .cof-chat_value {
-    color: #77dfd8;
+    color: #305956;
 }
 .cof-chat_prefix_buffer {
-    color: #cc843b;
+    color: #523518;
 }
 .cof-chat_tags {
-    color: #c75646;
+    color: #50221C;
 }
 .cof-chat_inactive_window {
-    color: #5d5d5d;
+    color: #2E2E2E;
 }
 .cof-chat_inactive_buffer {
-    color: #5d5d5d;
+    color: #2E2E2E;
 }
 .cof-chat_prefix_buffer_inactive_buffer {
-    color: #5d5d5d;
+    color: #2E2E2E;
 }
 .cof-chat_nick_offline {
-    color: #5d5d5d;
+    color: #2E2E2E;
 }
 .cof-chat_nick_offline_highlight {
-    color: #f7f7f7;
+    color: #636363;
     background-color: #5d5d5d;
 }
 .cof-chat_nick_prefix {
-    color: #cdee69;
+    color: #525F2A;
 }
 .cof-chat_nick_suffix {
-    color: #cdee69;
+    color: #525F2A;
 }
 .cof-emphasis {
-    color: #ffe377;
-    background-color: #c8a0d1;
+    color: #80723C;
+    background-color: #645068;
 }
 .cof-chat_day_change {
-    color: #77dfd8;
+    color: #305956;
 }
 
 /* style options, background */
@@ -440,58 +408,56 @@ button.close:hover {
 
 /* WeeChat colors, foreground */
 .cwf-default {
-    color: #d9d9d9;
-}
-.light-theme .cwf-default {
     color: #282828;
 }
+
 .cwf-black {
     color: #000000;
 }
 .cwf-darkgray {
-    color: #5d5d5d;
+    color: #2E2E2E;
 }
 .cwf-red {
-    color: #c75646;
+    color: #642B23;
 }
 .cwf-lightred {
-    color: #e09690;
+    color: #704B48;
 }
 .cwf-green {
-    color: #8eb33b;
+    color: #475A1E;
 }
 .cwf-lightgreen {
-    color: #cdee69;
+    color: #667734;
 }
 .cwf-brown {
-    color: #b27232;
+    color: #593919;
 }
 .cwf-yellow {
-    color: #ffe377;
+    color: #80723C;
 }
 .cwf-blue {
-    color: #72b3cc;
+    color: #395A66;
 }
 .cwf-lightblue {
-    color: #9cd9f0;
+    color: #4E6C78;
 }
 .cwf-magenta {
-    color: #c8a0d1;
+    color: #504054;
 }
 .cwf-lightmagenta {
-    color: #fbb1f9;
+    color: #644764;
 }
 .cwf-cyan {
-    color: #218693;
+    color: #10434A;
 }
 .cwf-lightcyan {
-    color: #77dfd8;
+    color: #182D2B;
 }
 .cwf-gray {
-    color: #b0b0b0;
+    color: #464646;
 }
 .cwf-white {
-    color: #f7f7f7;
+    color: #4A4A4A;
 }
 
 /* WeeChat colors, background */
@@ -502,49 +468,49 @@ button.close:hover {
     background-color: #000000;
 }
 .cwb-darkgray {
-    background-color: #5d5d5d;
+    background-color: #2E2E2E;
 }
 .cwb-red {
-    background-color: #c75646;
+    background-color: #642B23;
 }
 .cwb-lightred {
-    background-color: #e09690;
+    background-color: #704B48;
 }
 .cwb-green {
-    background-color: #8eb33b;
+    background-color: #475A1E;
 }
 .cwb-lightgreen {
-    background-color: #cdee69;
+    background-color: #667734;
 }
 .cwb-brown {
-    background-color: #b27232;
+    background-color: #593919;
 }
 .cwb-yellow {
-    background-color: #ffe377;
+    background-color: #80723C;
 }
 .cwb-blue {
-    background-color: #72b3cc;
+    background-color: #395A66;
 }
 .cwb-lightblue {
-    background-color: #9cd9f0;
+    background-color: #4E6C78;
 }
 .cwb-magenta {
-    background-color: #c8a0d1;
+    background-color: #504054;
 }
 .cwb-lightmagenta {
-    background-color: #fbb1f9;
+    background-color: #644764;
 }
 .cwb-cyan {
-    background-color: #218693;
+    background-color: #10434A;
 }
 .cwb-lightcyan {
-    background-color: #77dfd8;
+    background-color: #182D2B;
 }
 .cwb-gray {
-    background-color: #b0b0b0;
+    background-color: #464646;
 }
 .cwb-white {
-    background-color: #f7f7f7;
+    background-color: #4A4A4A;
 }
 
 /* extended colors, foreground */
@@ -555,7 +521,7 @@ button.close:hover {
     color: #7f0000; /* 001 DarkRed */
 }
 .cef-2 {
-    color: #00cd00; /* 002 DarkGreen */
+    color: #009300; /* 002 DarkGreen */
 }
 .cef-3 {
     color: #fc7f00; /* 003 Orange */
@@ -564,16 +530,16 @@ button.close:hover {
     color: #0000ee; /* 004 DarkBlue */
 }
 .cef-5 {
-    color: #cd00cd; /* 005 DarkMagenta */
+    color: #8e00cd; /* 005 DarkMagenta */
 }
 .cef-6 {
-    color: #00cdcd; /* 006 DarkCyan */
+    color: #009393; /* 006 DarkCyan */
 }
 .cef-7 {
-    color: #e5e5e5; /* 007 LightGrey */
+    color: #848484; /* 007 LightGrey */
 }
 .cef-8 {
-    color: #7f7f7f; /* 008 DarkGrey */
+    color: #606060; /* 008 DarkGrey */
 }
 .cef-9 {
     color: #ff0000; /* 009 LightRed */
@@ -582,19 +548,19 @@ button.close:hover {
     color: #00ff00; /* 010 LightGreen */
 }
 .cef-11 {
-    color: #ffff00; /* 011 LightYellow */
+    color: #d4d420; /* 011 LightYellow*/
 }
 .cef-12 {
-    color: #5c5cff; /* 012 LightBlue */
+    color: #4E80ff; /* 012 LightBlue */
 }
 .cef-13 {
-    color: #ff00ff; /* 013 LightMagenta */
+    color: #e407e4; /* 013 LightMagenta */
 }
 .cef-14 {
-    color: #00ffff; /* 014 LightCyan */
+    color: #18e1e1; /* 014 LightCyan */
 }
 .cef-15 {
-    color: #ffffff; /* 015 White */
+    color: #4A4A4A; /* 015 White */
 }
 .cef-16 {
     color: #000000; /* 016 Grey0 */
@@ -1325,7 +1291,7 @@ button.close:hover {
     background-color: #7f0000; /* 001 DarkRed */
 }
 .ceb-2 {
-    background-color: #00cd00; /* 002 DarkGreen */
+    background-color: #009300; /* 002 DarkGreen */
 }
 .ceb-3 {
     background-color: #fc7f00; /* 003 Orange */
@@ -1334,10 +1300,10 @@ button.close:hover {
     background-color: #0000ee; /* 004 DarkBlue */
 }
 .ceb-5 {
-    background-color: #cd00cd; /* 005 DarkMagenta */
+    background-color: #8e00cd; /* 005 DarkMagenta */
 }
 .ceb-6 {
-    background-color: #00cdcd; /* 006 DarkCyan */
+    background-color: #009393; /* 006 DarkCyan */
 }
 .ceb-7 {
     background-color: #e5e5e5; /* 007 LightGrey */
@@ -1355,7 +1321,7 @@ button.close:hover {
     background-color: #ffff00; /* 011 LightYellow */
 }
 .ceb-12 {
-    background-color: #5c5cff; /* 012 LightBlue */
+    background-color: #0080ff; /* 012 LightBlue */
 }
 .ceb-13 {
     background-color: #ff00ff; /* 013 LightMagenta */
@@ -2114,13 +2080,8 @@ button.close:hover {
 
 /* highlight messages */
 .highlight {
-    color: yellow;
+    color: orange;
     font-weight: bold;
-}
-
-code {
-  background-color: #444;
-  color: #fff;
 }
 
 /* */
@@ -2130,27 +2091,24 @@ code {
     /* a different colour is too irregular on mobile */
     .repeated-time .cof-chat_time,
     .repeated-time .cof-chat_time_delimiters {
-        color: #999;
+        color: #666;
     }
 
     #nicklist {
-        -webkit-box-shadow: 0px 0px 120px #000;
-        box-shadow: 0px 0px 120px #000;
-        background: #282828;
+        -webkit-box-shadow: 0px 0px 120px #999;
+        box-shadow: 0px 0px 120px #999;
+        background: #e7e7e7;
+
     }
 
     .footer {
-        background: rgb(24,24,24);
+        background: rgb(230,230,230);
     }
 
     .btn-complete-nick:hover,
     .btn-send:hover,
     .btn-send-image:hover {
-        background: none repeat scroll 0% 0% rgba(0, 0, 0, 0.3);
-        color: #ccc;
+        color: #428BCA;
     }
+
 }
-
-
-
-
