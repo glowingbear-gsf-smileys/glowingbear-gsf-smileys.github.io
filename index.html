@@ -337,7 +337,7 @@ chown -R <strong>username</strong>:<strong>username</strong> ~<strong>username</
         </div>
 
         <div class="title"  ng-click="showModal('topicModal')">
-          <span class="desktop" ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | escapeHtml | newlineTrans:settings.translateNewlines | linkyNS:'_blank':{rel:'noopener noreferrer'} | DOMfilter:'irclinky' | DOMfilter:'gbs_smileys')"></span>
+          <span class="desktop" ng-repeat="part in activeBuffer().title" ng-class="::part.classes" ng-bind-html="::(part.text | conditionalLinkify | DOMfilter:'irclinky' | DOMfilter:'gbs_smileys')"></span>
           <span class="mobile" ng-class="{'active': activeBuffer().active, 'channel': activeBuffer().type === 'channel', 'channel_hash': activeBuffer().prefix === '#', 'channel_plus': activeBuffer().prefix === '+', 'channel_ampersand': activeBuffer().prefix === '&'}">{{ activeBuffer().trimmedName || activeBuffer().fullName }}</span>
         </div>
 
